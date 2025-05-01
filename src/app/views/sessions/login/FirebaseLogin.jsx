@@ -5,12 +5,16 @@ import * as Yup from "yup";
 
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
+import FormControlLabel from '@mui/material/FormControlLabel';
 import Grid from "@mui/material/Grid2";
+import Typography from '@mui/material/Typography';
+
 import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
 import TextField from "@mui/material/TextField";
 import { styled, useTheme } from "@mui/material/styles";
 import LoadingButton from "@mui/lab/LoadingButton";
+import imgLogo from '../../../assets/img/logo.jpeg'
 // GLOBAL CUSTOM COMPONENTS
 import MatxLogo from "app/components/MatxLogo";
 import MatxDivider from "app/components/MatxDivider";
@@ -30,7 +34,9 @@ const Logo = styled("div")({
   gap: 10,
   display: "flex",
   alignItems: "center",
-  "& span": { fontSize: 26, lineHeight: 1.3, fontWeight: 800 }
+  justifyContent: 'center',
+  "& span": { fontSize: 26, lineHeight: 1.3, fontWeight: 800 },
+  "& img": { width: '300px', height: '300px'}
 });
 
 const FirebaseRoot = styled("div")(({ theme }) => ({
@@ -118,135 +124,128 @@ export default function FirebaseLogin() {
 
   return (
     <FirebaseRoot>
-      <Card className="card">
-        <Grid container>
-          <Grid size={{ md: 6, xs: 12 }}>
-            <div className="cardLeft">
-              <Logo>
-                <MatxLogo /> <span>MatX Pro</span>
-              </Logo>
+  <Box
+    minHeight="100vh"
+    display="flex"
+    alignItems="center"
+    justifyContent="center"
+    bgcolor="#f5f7fa0"
+  >
+    <Card
+      sx={{
+        width: { xs: '90%', sm: '400px' },
+        boxShadow: 3,
+        borderRadius: 3,
+        overflow: 'hidden',
+      }}
+    >
+      <Box
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        justifyContent="center"
+        bgcolor="#fff"
+        color="#fff"
+        py={1}
+        px={3}
+      >
+        <img src={imgLogo} alt="Logo" style={{ width: 220, marginBottom: 16 }} />
+        <Typography variant="h6" fontWeight="500" color='#252525'>
+          Bem Vindo
+        </Typography>
+        <Typography variant="body2" color='#252525'>
+          Informe suas credencias
+        </Typography>
+      </Box>
 
-              <h1 className="mainTitle">Admin Dashboard</h1>
+      <Box p={4}>
+        <Formik
+          onSubmit={handleFormSubmit}
+          initialValues={initialValues}
+          validationSchema={validationSchema}
+        >
+          {({
+            values,
+            errors,
+            touched,
+            isSubmitting,
+            handleChange,
+            handleBlur,
+            handleSubmit,
+          }) => (
+            <form onSubmit={handleSubmit}>
+              <TextField
+                fullWidth
+                margin="normal"
+                label="Email"
+                name="email"
+                size="small"
+                type="email"
+                variant="outlined"
+                onBlur={handleBlur}
+                onChange={handleChange}
+                value={values.email}
+                error={Boolean(errors.email && touched.email)}
+                helperText={touched.email && errors.email}
+              />
+              <TextField
+                fullWidth
+                margin="normal"
+                label="Password"
+                name="password"
+                size="small"
+                type="password"
+                variant="outlined"
+                onBlur={handleBlur}
+                onChange={handleChange}
+                value={values.password}
+                error={Boolean(errors.password && touched.password)}
+                helperText={touched.password && errors.password}
+              />
 
-              <div className="features">
-                <div className="item">JWT, Firebase & Auth0 Authentication</div>
-                <div className="item">Clean & Organized code</div>
-                <div className="item">Limitless Pages & Components</div>
-              </div>
+              <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      size="small"
+                      name="remember"
+                      checked={values.remember}
+                      onChange={handleChange}
+                    />
+                  }
+                  label="Lmebrar meu login"
+                />
+                <NavLink
+                  to="/session/forgot-password"
+                  style={{ fontSize: 14, color: '#1976d2', textDecoration: 'none' }}
+                >
+                  Esqueceu sua senha
+                </NavLink>
+              </Box>
 
-              <Span flexGrow={1}></Span>
-
-              <a href="https://ui-lib.com/" target="_blank" rel="noopener noreferrer">
-                <img src="/assets/images/logos/ui-lib.png" alt="UI Lib Logo" />
-              </a>
-            </div>
-          </Grid>
-
-          <Grid size={{ md: 6, xs: 12 }}>
-            <Box px={4} pt={4}>
-              <GoogleButton
+              <LoadingButton
+                type="submit"
                 fullWidth
                 variant="contained"
-                onClick={handleGoogleLogin}
-                startIcon={<img src="/assets/images/logos/google.svg" alt="google" />}>
-                Sign In With Google
-              </GoogleButton>
-            </Box>
+                loading={isSubmitting}
+                sx={{ mt: 3, mb: 2 }}
+              >
+                Login
+              </LoadingButton>
 
-            <MatxDivider sx={{ mt: 3, px: 4 }} text="Or" />
+              <Typography textAlign="center" variant="body2">
+                Não possui uma conta?{" "}
+                <NavLink to="/session/signup" style={{ color: '#1976d2', textDecoration: 'none' }}>
+                  Registrar
+                </NavLink>
+              </Typography>
+            </form>
+          )}
+        </Formik>
+      </Box>
+    </Card>
+  </Box>
+</FirebaseRoot>
 
-            <Box p={4}>
-              <Formik
-                onSubmit={handleFormSubmit}
-                initialValues={initialValues}
-                validationSchema={validationSchema}>
-                {({
-                  values,
-                  errors,
-                  touched,
-                  isSubmitting,
-                  handleChange,
-                  handleBlur,
-                  handleSubmit
-                }) => (
-                  <form onSubmit={handleSubmit}>
-                    <TextField
-                      fullWidth
-                      size="small"
-                      type="email"
-                      name="email"
-                      label="Email"
-                      variant="outlined"
-                      onBlur={handleBlur}
-                      value={values.email}
-                      onChange={handleChange}
-                      helperText={touched.email && errors.email}
-                      error={Boolean(errors.email && touched.email)}
-                      sx={{ mb: 3 }}
-                    />
-
-                    <TextField
-                      fullWidth
-                      size="small"
-                      name="password"
-                      type="password"
-                      label="Password"
-                      variant="outlined"
-                      onBlur={handleBlur}
-                      value={values.password}
-                      onChange={handleChange}
-                      helperText={touched.password && errors.password}
-                      error={Boolean(errors.password && touched.password)}
-                      sx={{ mb: 1.5 }}
-                    />
-
-                    <Box display="flex" justifyContent="space-between">
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <Checkbox
-                          size="small"
-                          name="remember"
-                          onChange={handleChange}
-                          checked={values.remember}
-                          sx={{ padding: 0 }}
-                        />
-
-                        <Paragraph>Remember Me</Paragraph>
-                      </Box>
-
-                      <NavLink
-                        to="/session/forgot-password"
-                        style={{ color: theme.palette.primary.main }}>
-                        Forgot password?
-                      </NavLink>
-                    </Box>
-
-                    <LoadingButton
-                      type="submit"
-                      color="primary"
-                      loading={isSubmitting}
-                      variant="contained"
-                      sx={{ my: 2 }}>
-                      Login
-                    </LoadingButton>
-
-                    <Paragraph>
-                      Don't have an account?
-                      <NavLink
-                        to="/session/signup"
-                        style={{
-                          marginInlineStart: 5,
-                          color: theme.palette.primary.main
-                        }}>
-                        Register
-                      </NavLink>
-                    </Paragraph>
-                  </form>
-                )}
-              </Formik>
-            </Box>
-          </Grid>
-        </Grid>
-      </Card>
-    </FirebaseRoot>
   );
 }
