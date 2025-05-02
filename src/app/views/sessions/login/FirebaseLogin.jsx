@@ -1,43 +1,16 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useSnackbar } from "notistack";
 import { Formik } from "formik";
-import * as Yup from "yup";
-
+import { styled, useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import FormControlLabel from '@mui/material/FormControlLabel';
-import Grid from "@mui/material/Grid2";
 import Typography from '@mui/material/Typography';
-
-import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
 import TextField from "@mui/material/TextField";
-import { styled, useTheme } from "@mui/material/styles";
 import LoadingButton from "@mui/lab/LoadingButton";
 import imgLogo from '../../../assets/img/logo.jpeg'
-// GLOBAL CUSTOM COMPONENTS
-import MatxLogo from "app/components/MatxLogo";
-import MatxDivider from "app/components/MatxDivider";
-import { Paragraph, Span } from "app/components/Typography";
-// GLOBAL CUSTOM HOOKS
 import useAuth from "app/hooks/useAuth";
-
-// STYLED COMPONENTS
-const GoogleButton = styled(Button)(({ theme }) => ({
-  color: "rgba(0, 0, 0, 0.87)",
-  boxShadow: theme.shadows[0],
-  backgroundColor: "#e0e0e0",
-  "&:hover": { backgroundColor: "#d5d5d5" }
-}));
-
-const Logo = styled("div")({
-  gap: 10,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: 'center',
-  "& span": { fontSize: 26, lineHeight: 1.3, fontWeight: 800 },
-  "& img": { width: '300px', height: '300px'}
-});
 
 const FirebaseRoot = styled("div")(({ theme }) => ({
   display: "flex",
@@ -79,173 +52,152 @@ const FirebaseRoot = styled("div")(({ theme }) => ({
   }
 }));
 
-// initial login credentials
 const initialValues = {
-  email: "jason@ui-lib.com",
-  password: "dummyPass",
+  email: "",
+  password: "",
   remember: true
 };
-
-// form field validation schema
-const validationSchema = Yup.object().shape({
-  password: Yup.string()
-    .min(6, "Password must be 6 character length")
-    .required("Password is required!"),
-  email: Yup.string().email("Invalid Email address").required("Email is required!")
-});
 
 export default function FirebaseLogin() {
   const theme = useTheme();
   const navigate = useNavigate();
   const { state } = useLocation();
   const { enqueueSnackbar } = useSnackbar();
-  const { signInWithEmail, signInWithGoogle } = useAuth();
+  const { loginComApi } = useAuth();
 
   const handleFormSubmit = async (values) => {
     try {
-      // alert(JSON.stringify(values, null, 4));
-      await signInWithEmail(values.email, values.password);
-      navigate(state ? state.from : "/");
-      enqueueSnackbar("Logged In Successfully", { variant: "success" });
+      const res = await loginComApi(values.email, values.password);
+      enqueueSnackbar("Autenticado com sucesso!", { variant: "success" });
+      navigate(state?.from || "/");
     } catch (error) {
-      alert(JSON.stringify(error, null, 4));
-      enqueueSnackbar(error.message, { variant: "error" });
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    try {
-      await signInWithGoogle();
-      navigate("/");
-    } catch (e) {
-      console.error(e);
+      enqueueSnackbar("Erro ao autenticar", { variant: "error" });
+      console.error(error);
     }
   };
 
   return (
     <FirebaseRoot>
-  <Box
-    minHeight="100vh"
-    display="flex"
-    alignItems="center"
-    justifyContent="center"
-    bgcolor="#f5f7fa0"
-  >
-    <Card
-      sx={{
-        width: { xs: '90%', sm: '400px' },
-        boxShadow: 3,
-        borderRadius: 3,
-        overflow: 'hidden',
-      }}
-    >
       <Box
+        minHeight="100vh"
         display="flex"
-        flexDirection="column"
         alignItems="center"
         justifyContent="center"
-        bgcolor="#fff"
-        color="#fff"
-        py={1}
-        px={3}
+        bgcolor="#f5f7fa0"
       >
-        <img src={imgLogo} alt="Logo" style={{ width: 220, marginBottom: 16 }} />
-        <Typography variant="h6" fontWeight="500" color='#252525'>
-          Bem Vindo
-        </Typography>
-        <Typography variant="body2" color='#252525'>
-          Informe suas credencias
-        </Typography>
-      </Box>
-
-      <Box p={4}>
-        <Formik
-          onSubmit={handleFormSubmit}
-          initialValues={initialValues}
-          validationSchema={validationSchema}
+        <Card
+          sx={{
+            width: { xs: '90%', sm: '400px' },
+            boxShadow: 3,
+            borderRadius: 3,
+            overflow: 'hidden',
+          }}
         >
-          {({
-            values,
-            errors,
-            touched,
-            isSubmitting,
-            handleChange,
-            handleBlur,
-            handleSubmit,
-          }) => (
-            <form onSubmit={handleSubmit}>
-              <TextField
-                fullWidth
-                margin="normal"
-                label="Email"
-                name="email"
-                size="small"
-                type="email"
-                variant="outlined"
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.email}
-                error={Boolean(errors.email && touched.email)}
-                helperText={touched.email && errors.email}
-              />
-              <TextField
-                fullWidth
-                margin="normal"
-                label="Password"
-                name="password"
-                size="small"
-                type="password"
-                variant="outlined"
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.password}
-                error={Boolean(errors.password && touched.password)}
-                helperText={touched.password && errors.password}
-              />
+          <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            justifyContent="center"
+            bgcolor="#fff"
+            color="#fff"
+            py={1}
+            px={3}
+          >
+            <img src={imgLogo} alt="Logo" style={{ width: 220, marginBottom: 16 }} />
+            <Typography variant="h6" fontWeight="500" color='#252525'>
+              Bem Vindo
+            </Typography>
+            <Typography variant="body2" color='#252525'>
+              Informe suas credencias
+            </Typography>
+          </Box>
 
-              <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      size="small"
-                      name="remember"
-                      checked={values.remember}
-                      onChange={handleChange}
+          <Box p={4}>
+            <Formik
+              onSubmit={handleFormSubmit}
+              initialValues={initialValues}
+            >
+              {({
+                values,
+                errors,
+                touched,
+                isSubmitting,
+                handleChange,
+                handleBlur,
+                handleSubmit,
+              }) => (
+                <form onSubmit={handleSubmit}>
+                  <TextField
+                    fullWidth
+                    margin="normal"
+                    label="Email"
+                    name="email"
+                    size="small"
+                    variant="outlined"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    value={values.email}
+                    error={Boolean(errors.email && touched.email)}
+                    helperText={touched.email && errors.email}
+                  />
+                  <TextField
+                    fullWidth
+                    margin="normal"
+                    label="Password"
+                    name="password"
+                    size="small"
+                    type="password"
+                    variant="outlined"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    value={values.password}
+                    error={Boolean(errors.password && touched.password)}
+                    helperText={touched.password && errors.password}
+                  />
+
+                  <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          size="small"
+                          name="remember"
+                          checked={values.remember}
+                          onChange={handleChange}
+                        />
+                      }
+                      label="Lembrar meu login"
                     />
-                  }
-                  label="Lmebrar meu login"
-                />
-                <NavLink
-                  to="/session/forgot-password"
-                  style={{ fontSize: 14, color: '#1976d2', textDecoration: 'none' }}
-                >
-                  Esqueceu sua senha
-                </NavLink>
-              </Box>
+                    <NavLink
+                      to="/session/forgot-password"
+                      style={{ fontSize: 14, color: '#1976d2', textDecoration: 'none' }}
+                    >
+                      Esqueceu sua senha
+                    </NavLink>
+                  </Box>
 
-              <LoadingButton
-                type="submit"
-                fullWidth
-                variant="contained"
-                loading={isSubmitting}
-                sx={{ mt: 3, mb: 2 }}
-              >
-                Login
-              </LoadingButton>
+                  <LoadingButton
+                    type="submit"
+                    fullWidth
+                    variant="contained"
+                    loading={isSubmitting}
+                    sx={{ mt: 3, mb: 2 }}
+                  >
+                    Login
+                  </LoadingButton>
 
-              <Typography textAlign="center" variant="body2">
-                Não possui uma conta?{" "}
-                <NavLink to="/session/signup" style={{ color: '#1976d2', textDecoration: 'none' }}>
-                  Registrar
-                </NavLink>
-              </Typography>
-            </form>
-          )}
-        </Formik>
+                  <Typography textAlign="center" variant="body2">
+                    Não possui uma conta?{" "}
+                    <NavLink to="/session/signup" style={{ color: '#1976d2', textDecoration: 'none' }}>
+                      Registrar
+                    </NavLink>
+                  </Typography>
+                </form>
+              )}
+            </Formik>
+          </Box>
+        </Card>
       </Box>
-    </Card>
-  </Box>
-</FirebaseRoot>
+    </FirebaseRoot>
 
   );
 }

@@ -82,7 +82,7 @@ export default function NotificationBar({ container }) {
   return (
     <Fragment>
       <IconButton onClick={handleDrawerToggle}>
-        <Badge color="secondary" badgeContent={notifications?.length}>
+        <Badge color="secondary">
           <Notifications sx={{ color: "text.primary" }} />
         </Badge>
       </IconButton>
@@ -99,49 +99,14 @@ export default function NotificationBar({ container }) {
           <Box sx={{ width: sideNavWidth }}>
             <Notification>
               <Notifications color="primary" />
-              <h5>Notifications</h5>
+              <h5>Notificações</h5>
             </Notification>
 
-            {notifications?.map((notification) => (
-              <NotificationCard key={notification.id}>
-                <DeleteButton
-                  size="small"
-                  className="deleteButton"
-                  onClick={() => deleteNotification(notification.id)}>
-                  <Clear className="icon" />
-                </DeleteButton>
-
-                <Link
-                  to={`/${notification.path}`}
-                  onClick={handleDrawerToggle}
-                  style={{ textDecoration: "none" }}>
-                  <Card sx={{ mx: 2, mb: 3 }} elevation={3}>
-                    <CardLeftContent>
-                      <Box display="flex">
-                        <Icon className="icon" color={notification.icon.color}>
-                          {notification.icon.name}
-                        </Icon>
-                        <Heading>{notification.heading}</Heading>
-                      </Box>
-
-                      <Small className="messageTime">
-                        {getTimeDifference(new Date(notification.timestamp))}
-                        ago
-                      </Small>
-                    </CardLeftContent>
-
-                    <Box px={2} pt={1} pb={2}>
-                      <Paragraph m={0}>{notification.title}</Paragraph>
-                      <Small color="text.secondary">{notification.subtitle}</Small>
-                    </Box>
-                  </Card>
-                </Link>
-              </NotificationCard>
-            ))}
+            {/* MAP DE NOFICICAÇÕES DEVEM VIR AQUI */}
 
             {!!notifications?.length && (
               <Button fullWidth onClick={clearNotifications}>
-                Clear Notifications
+                Marcar como lidas
               </Button>
             )}
           </Box>

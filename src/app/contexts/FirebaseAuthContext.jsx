@@ -1,89 +1,111 @@
 import { createContext, useEffect, useReducer } from "react";
-import { initializeApp } from "firebase/app";
-import {
-  getAuth,
-  signOut,
-  signInWithPopup,
-  GoogleAuthProvider,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword
-} from "firebase/auth";
-// FIREBASE CONFIGURATION
-import { firebaseConfig } from "app/config";
-// GLOBAL CUSTOM COMPONENT
 import Loading from "app/components/MatxLoading";
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 
 const initialAuthState = {
   user: null,
   isInitialized: false,
-  isAuthenticated: false
+  isAuthenticated: false,
+  token: null
 };
 
 const reducer = (state, action) => {
   switch (action.type) {
-    case "FB_AUTH_STATE_CHANGED": {
-      const { isAuthenticated, user } = action.payload;
-      return { ...state, isAuthenticated, isInitialized: true, user };
-    }
+    case "AUTH_STATE_CHANGED":
+      return {
+        ...state,
+        isAuthenticated: action.payload.isAuthenticated,
+        isInitialized: true,
+        user: action.payload.user,
+        token: action.payload.token
+      };
 
-    default: {
+    case "LOGOUT":
+      return { ...initialAuthState, isInitialized: true };
+
+    default:
       return state;
-    }
   }
 };
 
-const AuthContext = createContext({
-  ...initialAuthState,
-  method: "FIREBASE"
-});
+const AuthContext = createContext({ ...initialAuthState });
 
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialAuthState);
 
-  const signInWithEmail = (email, password) => {
-    return signInWithEmailAndPassword(auth, email, password);
-  };
+  const loginComApi = async (email, senha) => {
+    const response = await fetch("http://localhost:3400/usuarios/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: email, senha })
+    });
 
-  const signInWithGoogle = () => {
-    const provider = new GoogleAuthProvider();
-    return signInWithPopup(auth, provider);
-  };
+    if (!response.ok) throw new Error("Falha no login");
 
-  const createUserWithEmail = (email, password) => {
-    return createUserWithEmailAndPassword(auth, email, password);
-  };
+    const data = await response.json();
 
-  const logout = () => signOut(auth);
+    localStorage.setItem("authToken", data.token);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        dispatch({
-          type: "FB_AUTH_STATE_CHANGED",
-          payload: {
-            isAuthenticated: true,
-            user: {
-              id: user.uid,
-              email: user.email,
-              avatar: user.photoURL,
-              name: user.displayName || user.email
-            }
-          }
-        });
-      } else {
-        dispatch({
-          type: "FB_AUTH_STATE_CHANGED",
-          payload: { isAuthenticated: false, user: null }
-        });
+    dispatch({
+      type: "AUTH_STATE_CHANGED",
+      payload: {
+        isAuthenticated: true,
+        user: data.usuario,
+        token: data.token
       }
     });
 
-    return () => unsubscribe();
-  }, [dispatch]);
+    return data;
+  };
+
+  const logout = () => {
+    localStorage.removeItem("authToken");
+    dispatch({ type: "LOGOUT" });
+  };
+
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+
+    if (token) {
+      fetch("http://localhost:3400/usuarios/validartoken", {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error("Token inválido");
+          return res.json();
+        })
+        .then((data) => {
+          dispatch({
+            type: "AUTH_STATE_CHANGED",
+            payload: {
+              isAuthenticated: true,
+              user: data.usuario,
+              token
+            }
+          });
+        })
+        .catch(() => {
+          localStorage.removeItem("authToken");
+          dispatch({
+            type: "AUTH_STATE_CHANGED",
+            payload: {
+              isAuthenticated: false,
+              user: null,
+              token: null
+            }
+          });
+        });
+    } else {
+      dispatch({
+        type: "AUTH_STATE_CHANGED",
+        payload: {
+          isAuthenticated: false,
+          user: null,
+          token: null
+        }
+      });
+    }
+  }, []);
 
   if (!state.isInitialized) return <Loading />;
 
@@ -91,12 +113,11 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         ...state,
+        loginComApi,
         logout,
-        signInWithGoogle,
-        method: "FIREBASE",
-        signInWithEmail,
-        createUserWithEmail
-      }}>
+        method: "API"
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
