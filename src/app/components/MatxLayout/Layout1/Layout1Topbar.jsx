@@ -131,13 +131,11 @@ const Layout1Topbar = () => {
             <NotificationBar />
           </NotificationProvider>
 
-          <ShoppingCart />
-
           <MatxMenu
             menuButton={
               <UserMenu>
                 <Span>
-                  Hi <strong>{user.name}</strong>
+                  Hi <strong>{user.username}</strong>
                 </Span>
 
                 <Avatar src={user.avatar} sx={{ cursor: "pointer" }} />
@@ -146,25 +144,25 @@ const Layout1Topbar = () => {
             <StyledItem>
               <Link to="/">
                 <Home />
-                <Span sx={{ marginInlineStart: 1 }}>Home</Span>
+                <Span sx={{ marginInlineStart: 1 }}>Dashboard</Span>
               </Link>
             </StyledItem>
 
             <StyledItem>
               <Link to="/page-layouts/user-profile">
                 <Person />
-                <Span sx={{ marginInlineStart: 1 }}>Profile</Span>
+                <Span sx={{ marginInlineStart: 1 }}>Perfil</Span>
               </Link>
             </StyledItem>
 
             <StyledItem>
               <Settings />
-              <Span sx={{ marginInlineStart: 1 }}>Settings</Span>
+              <Span sx={{ marginInlineStart: 1 }}>Configurações</Span>
             </StyledItem>
 
             <StyledItem onClick={logout}>
               <PowerSettingsNew />
-              <Span sx={{ marginInlineStart: 1 }}>Logout</Span>
+              <Span sx={{ marginInlineStart: 1 }}>Sair</Span>
             </StyledItem>
           </MatxMenu>
         </Box>

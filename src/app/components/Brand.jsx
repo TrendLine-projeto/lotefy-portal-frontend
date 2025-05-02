@@ -3,6 +3,7 @@ import styled from "@mui/material/styles/styled";
 
 import { Span } from "./Typography";
 import { MatxLogo } from "app/components";
+import logoIcon from '../assets/img/icon.png'
 import useSettings from "app/hooks/useSettings";
 
 // STYLED COMPONENTS
@@ -15,6 +16,8 @@ const BrandRoot = styled("div")(() => ({
 
 const StyledSpan = styled(Span)(({ mode }) => ({
   fontSize: 18,
+  color: '#363636',
+  fontWeight: '500',
   marginLeft: ".5rem",
   display: mode === "compact" ? "none" : "block"
 }));
@@ -25,17 +28,15 @@ export default function Brand({ children }) {
   const { mode } = leftSidebar;
 
   return (
-    <BrandRoot>
-      <Box display="flex" alignItems="center">
-        <MatxLogo />
-        <StyledSpan mode={mode} className="sidenavHoverShow">
-          Matx
-        </StyledSpan>
-      </Box>
-
-      <Box className="sidenavHoverShow" sx={{ display: mode === "compact" ? "none" : "block" }}>
-        {children || null}
-      </Box>
-    </BrandRoot>
+    <div style={{ backgroundColor: '#fff', marginBottom: '30px',}}>
+      <BrandRoot>
+        <Box display="flex" alignItems="center">
+          <img style={{width: '30px',}} src={logoIcon} />
+          <StyledSpan mode={mode} className="sidenavHoverShow">
+            Trendline
+          </StyledSpan>
+        </Box>
+      </BrandRoot>
+    </div>
   );
 }

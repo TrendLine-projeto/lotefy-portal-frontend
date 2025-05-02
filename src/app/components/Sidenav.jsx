@@ -1,12 +1,30 @@
 import { Fragment } from "react";
+import { MatxVerticalNav } from "app/components";
 import Scrollbar from "react-perfect-scrollbar";
 import styled from "@mui/material/styles/styled";
-
-import { MatxVerticalNav } from "app/components";
 import useSettings from "app/hooks/useSettings";
-import navigations from "app/navigations";
+import useAuth from "app/hooks/useAuth";
 
-// STYLED COMPONENTS
+// Menus fixos com ícone e label
+const MENU_FIXO = [
+  { label: "DASHBOARD", type: "label" },
+  { name: "Dashboard", icon: "MdDashboard", path: "/dashboard/default" },
+  { label: "SISTEMA", type: "label" }
+];
+
+// Conversão dos menus da API para o formato do MatxVerticalNav
+function mapearMenusDoUsuario(menusAPI) {
+  return menusAPI.map(menu => ({
+    name: menu.nome,
+    icon: menu.icone, 
+    path: menu.link,
+    children: menu.submenus?.map(sub => ({
+      name: sub.nome,
+      path: sub.link
+    }))
+  }));
+}
+
 const StyledScrollBar = styled(Scrollbar)(() => ({
   paddingLeft: "1rem",
   paddingRight: "1rem",
@@ -27,6 +45,13 @@ const SideNavMobile = styled("div")(({ theme }) => ({
 
 export default function Sidenav({ children }) {
   const { settings, updateSettings } = useSettings();
+  const { user } = useAuth();
+
+  // Converte os menus da API
+  const menusAPI = user?.menus ? mapearMenusDoUsuario(user.menus) : [];
+
+  // Combina com os menus fixos
+  const items = [...MENU_FIXO, ...mapearMenusDoUsuario(user.menus)];
 
   const updateSidebarMode = (sidebarSettings) => {
     let activeLayoutSettingsName = settings.activeLayout + "Settings";
@@ -45,9 +70,8 @@ export default function Sidenav({ children }) {
     <Fragment>
       <StyledScrollBar options={{ suppressScrollX: true }}>
         {children}
-        <MatxVerticalNav items={navigations} />
+        <MatxVerticalNav items={items} />
       </StyledScrollBar>
-
       <SideNavMobile onClick={() => updateSidebarMode({ mode: "close" })} />
     </Fragment>
   );
