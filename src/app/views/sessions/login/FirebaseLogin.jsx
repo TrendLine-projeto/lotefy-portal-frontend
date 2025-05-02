@@ -213,7 +213,7 @@ export default function FirebaseLogin() {
                       onChange={handleChange}
                     />
                   }
-                  label="Lmebrar meu login"
+                  label="Lembrar meu login"
                 />
                 <NavLink
                   to="/session/forgot-password"

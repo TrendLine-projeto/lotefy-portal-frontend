@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { useRoutes } from "react-router-dom";
 import CssBaseline from "@mui/material/CssBaseline";
 // ROOT THEME PROVIDER
@@ -9,6 +10,7 @@ import { AuthProvider } from "./contexts/FirebaseAuthContext";
 import routes from "./routes";
 // FAKE SERVER
 import "../__api__";
+import MatxLoading from "./components/MatxLoading";
 
 export default function App() {
   const content = useRoutes(routes);
@@ -18,7 +20,9 @@ export default function App() {
       <AuthProvider>
         <MatxTheme>
           <CssBaseline />
-          {content}
+          <Suspense fallback={<MatxLoading />}>
+            {content}
+          </Suspense>
         </MatxTheme>
       </AuthProvider>
     </SettingsProvider>
