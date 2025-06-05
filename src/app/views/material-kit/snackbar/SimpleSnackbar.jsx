@@ -21,7 +21,7 @@ export default function SimpleSnackbar() {
     <Box>
       <Button onClick={handleClick}>Open simple snackbar</Button>
       <Snackbar
-        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
         open={open}
         autoHideDuration={6000}
         onClose={handleClose}
