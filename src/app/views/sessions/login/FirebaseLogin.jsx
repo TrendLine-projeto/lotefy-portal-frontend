@@ -9,7 +9,7 @@ import Typography from '@mui/material/Typography';
 import Checkbox from "@mui/material/Checkbox";
 import TextField from "@mui/material/TextField";
 import LoadingButton from "@mui/lab/LoadingButton";
-import imgLogo from '../../../assets/img/logo.jpeg'
+import imgLogo from '../../../assets/img/logo2.jpg'
 import useAuth from "app/hooks/useAuth";
 
 const FirebaseRoot = styled("div")(({ theme }) => ({

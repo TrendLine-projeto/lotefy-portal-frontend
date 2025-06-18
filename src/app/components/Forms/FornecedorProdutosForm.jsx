@@ -17,31 +17,32 @@ import {
 } from '@mui/material';
 
 const camposPadrao = {
-    razaoSocial: '',
-    nomeFantasia: '',
-    cnpj: '',
-    inscricaoEstadual: '',
-    email: '',
-    telefone: '',
-    celular: '',
-    responsavel: '',
-    site: '',
-    tipoFornecedor: '',
-    categoria: '',
-    endereco: '',
-    bairro: '',
-    cidade: '',
-    estado: '',
-    cep: '',
-    pais: '',
-    observacoes: '',
-    dataCadastro: '',
-    ativo: false
+    id: "",
+    razaoSocial: "",
+    nomeFantasia: "",
+    cnpj: "",
+    inscricaoEstadual: "",
+    email: "",
+    telefone: "",
+    celular: "",
+    responsavel: "",
+    site: "",
+    tipoFornecedor: "",
+    categoria: "",
+    endereco: "",
+    bairr: "",
+    cidade: "",
+    estado: "",
+    cep: "",
+    pais: "",
+    observacoes: "",
+    ativo: 0,
+    dataCadastro: ""
 };
 
-const camposIgnorados = ['id', 'cliente_id'];
+const camposIgnorados = ['id'];
 
-export const FornecedorForm = ({ fornecedor, onClearAll, modoEdicao, onEditClick, onRequestSubmit, onRequestDelete }) => {
+export const FornecedorProdutosForm = ({ fornecedor, onClearAll, modoEdicao, onEditClick, onRequestSubmit, onRequestDelete }) => {
     const [formData, setFormData] = useState(camposPadrao);
     const [abaSelecionada, setAbaSelecionada] = useState(0);
 
@@ -102,12 +103,12 @@ export const FornecedorForm = ({ fornecedor, onClearAll, modoEdicao, onEditClick
         <Paper elevation={0} className="p-6 mt-6" sx={{ marginTop: '25px', padding: 3 }}>
             <div style={{ marginBottom: 20 }}>
                 <Typography variant="h5" component="h2" fontWeight={600}>
-                    {isNovoCadastro ? 'Fornecedor' : 'Fornecedor Selecionado'}
+                    {isNovoCadastro ? 'Produtos' : 'Fornecedor de Produtos Selecionado'}
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
                     {isNovoCadastro
-                        ? 'Preencha os dados abaixo para cadastrar um novo fornecedor de suprimentos'
-                        : 'Informações detalhadas do fornecedor selecionado.'}
+                        ? 'Preencha os dados abaixo para cadastrar um novo Fornecedor de Produtos.'
+                        : 'Informações detalhadas do Fornecedor de Produtos.'}
                 </Typography>
             </div>
 

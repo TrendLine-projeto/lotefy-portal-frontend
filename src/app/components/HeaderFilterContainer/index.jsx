@@ -30,14 +30,14 @@ const clearButtonStyle = {
     cursor: 'pointer'
 };
 
-const ExpandableFilterPanel = ({ fields = [], onChange, onFilter, onClear, title = 'Filtros', children, values = {} }) => {
+const ExpandableFilterPanel = ({ fields = [], expanded, onToggle, onChange, onFilter, onClear, title = 'Filtros', children, values = {} }) => {
     const handleInputChange = (e, field) => {
         const value = field.type === 'checkbox' ? e.target.checked : e.target.value;
         onChange(field.name, value);
     };
 
     return (
-        <Accordion>
+        <Accordion expanded={expanded} onChange={onToggle}>
             <AccordionSummary
                 expandIcon={<ExpandMoreIcon />}
                 aria-controls="filter-panel-content"

@@ -12,6 +12,9 @@ import materialRoutes from "app/views/material-kit/MaterialRoutes";
 const AppEchart = Loadable(lazy(() => import("app/views/charts/echarts/AppEchart")));
 const Analytics = Loadable(lazy(() => import("app/views/dashboard/Analytics")));
 const SuprimentosMain = Loadable(lazy(() => import("app/views/fornecedores/suprimentos/index")));
+const ProdutosMain = Loadable(lazy(() => import("app/views/fornecedores/produtos/index")));
+const MateriaPrimaMain = Loadable(lazy(() => import("app/views/estoque/materiaPrima/index")));
+const SuprimentosTecnicosMain = Loadable(lazy(() => import("app/views/estoque/insumosTecnicos/index")));
 
 const routes = [
   { path: "/", element: <Navigate to="dashboard/default" /> },
@@ -28,7 +31,10 @@ const routes = [
       // e-chart route
       { path: "/charts/echarts", element: <AppEchart />, auth: authRoles.editor },
 
-      { path: "/fornecedoressuprimentos", element: <SuprimentosMain />, auth: authRoles.editor }
+      { path: "/fornecedoressuprimentos", element: <SuprimentosMain />, auth: authRoles.editor },
+      { path: "/fornecedoresprodutos", element: <ProdutosMain />, auth: authRoles.editor },
+      { path: "/suprimentos/materiaprima", element: <MateriaPrimaMain />, auth: authRoles.editor },
+      { path: "/suprimentos/insumostecnicos", element: <SuprimentosTecnicosMain />, auth: authRoles.editor }
     ]
   },
 

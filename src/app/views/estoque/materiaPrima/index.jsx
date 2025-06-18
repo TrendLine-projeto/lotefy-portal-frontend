@@ -2,8 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { Breadcrumb } from "app/components";
 import { Snackbar, Alert } from "@mui/material";
-import { FornecedorForm } from '../../../components/Forms/FornecedorForm';
+import { EstoqueMateriaPrima } from '../../../components/Forms/EstoqueMateriaPrima';
 import { AiFillProduct } from "react-icons/ai";
+import { GiWireCoil } from "react-icons/gi";
 import ExpandableFilterPanel from '../../../components/HeaderFilterContainer/index';
 import ConfirmDialog from '../../../components/Dialogs/ConfirmDialog';
 import Loading from '../../../components/MatxLoading';
@@ -20,14 +21,16 @@ const Container = styled("div")(({ theme }) => ({
     }
 }));
 
-export default function SuprimentosMain() {
+export default function MateriaPrimaMain() {
     const [filters, setFilters] = useState({});
-    const [fornecedorSelecionado, setFornecedorSelecionado] = useState(null);
+    const [dataSelecionado, setDataSelecionado] = useState(null);
     const [data, setData] = useState([]);
+    const [tiposProduto, setTiposProduto] = useState([]);
     const [pagination, setPagination] = useState({ page: 1, perPage: 10, total: 0 });
     const [loading, setLoading] = useState(false);
     const [painelExpandido, setPainelExpandido] = useState(false);
     const [modoEdicao, setModoEdicao] = useState(true);
+    const [fornecedores, setFornecedores] = useState([]);
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: '',
@@ -56,7 +59,7 @@ export default function SuprimentosMain() {
 
     const handleClear = () => {
         setFilters({});
-        setFornecedorSelecionado(null);
+        setDataSelecionado(null);
         setPagination((prev) => ({ ...prev, page: 1 }));
         fetchData();
     };
@@ -64,19 +67,19 @@ export default function SuprimentosMain() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:3450/fornecedorSupri/fornecedores_suprimentos/buscar', {
+            const res = await fetch('http://localhost:3450/estoque/estoque_materiaprima/buscar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...filters,
-                    cliente_id: 1,
+                    idCliente: 1,
                     pagina: pagination.page,
                     quantidadePorPagina: pagination.perPage
                 })
             });
             const result = await res.json();
 
-            if (result.mensagem === "Nenhum fornecedor encontrado para esse cliente.") {
+            if (result.mensagem === "Nenhuma matéria prima encontrada.") {
                 setData([]);
                 setPagination(prev => ({
                     ...prev,
@@ -88,10 +91,10 @@ export default function SuprimentosMain() {
                     open: true,
                     message: result.mensagem,
                     severity: 'info',
-                    mensagem: 'Nenhum fornecedor encontrado'
+                    mensagem: 'Nenhua matéria prima encontrada'
                 });
             } else {
-                setData(result.fornecedores.map(f => ({
+                setData(result.materiais.map(f => ({
                     ...f,
                     ativo: f.ativo === 1 ? 'Sim' : 'Não'
                 })));
@@ -102,7 +105,7 @@ export default function SuprimentosMain() {
                 });
             }
         } catch (error) {
-            console.error('Erro ao buscar fornecedores:', error);
+            console.error('Erro ao buscar o registro:', error);
         } finally {
             setLoading(false);
         }
@@ -110,12 +113,12 @@ export default function SuprimentosMain() {
 
     const handleSelect = async (id) => {
         try {
-            const res = await fetch(`http://localhost:3450/fornecedorSupri/fornecedores_suprimentos/${id}`);
+            const res = await fetch(`http://localhost:3450/estoque/estoque_materiaprima/${id}`);
             const result = await res.json();
-            setFornecedorSelecionado(result.fornecedor);
+            setDataSelecionado(result.materiaPrima);
 
             if (res.ok) {
-                setFornecedorSelecionado(result.fornecedor);
+                setDataSelecionado(result.materiaPrima);
                 setModoEdicao(true);
                 setPainelExpandido(false);
                 setSnackbar({
@@ -127,75 +130,76 @@ export default function SuprimentosMain() {
             } else {
                 setSnackbar({
                     open: true,
-                    message: data.mensagem || '1 Erro ao selecionar um Fornecedor!',
+                    message: data.mensagem || 'Erro ao selecionar a Matéria-prima!',
                     severity: 'error',
-                    mensagem: '1 Erro ao selecionar um Fornecedor!'
+                    mensagem: 'Erro ao selecionar a Matéria-prima!'
                 });
             }
         } catch (err) {
             setSnackbar({
                 open: true,
-                message: data.mensagem || '2 Erro ao selecionar o Fornecedor!',
+                message: data.mensagem || 'Erro ao selecionar a Matéria-prima!',
                 severity: 'error',
-                mensagem: '2 Erro ao selecionar o Fornecedor!'
+                mensagem: 'Erro ao selecionar a Matéria-prima!'
             });
         }
     };
 
     const handleCadastrar = async (formData) => {
         try {
-            const response = await fetch('http://localhost:3450/fornecedorSupri/fornecedores_suprimentos', {
+            const response = await fetch('http://localhost:3450/estoque/estoque_materiaprima', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     ...formData,
-                    ativo: formData.ativo ? true : false,
-                    cliente_id: formData.cliente_id || 1
+                    idCliente: formData.idCliente || 1
                 })
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                setFornecedorSelecionado(null);
+                setDataSelecionado(null);
                 fetchData();
                 setSnackbar({
                     open: true,
-                    message: data.mensagem || 'Fornecedor cadastrado com sucesso!',
+                    message: data.mensagem || 'Matéria-prima cadastrada com sucesso!',
                     severity: 'success',
                     mensagem: 'Cadastrado realizado com sucesso'
                 });
             } else {
                 setSnackbar({
                     open: true,
-                    message: data.mensagem || 'Erro ao cadastrado um Fornecedor!',
+                    message: data.mensagem || 'Erro ao cadastrado a Matéria-prima!',
                     severity: 'error',
-                    mensagem: 'Erro ao cadastrado um Fornecedor!'
+                    mensagem: 'Erro ao cadastrado a Matéria-prima!'
                 });
             }
         } catch (error) {
             setSnackbar({
                 open: true,
-                message: data.mensagem || 'Erro ao cadastrado um Fornecedor!',
+                message: data.mensagem || 'Erro ao cadastrado a Matéria-prima!',
                 severity: 'error',
-                mensagem: 'Erro ao cadastrado um Fornecedor!'
+                mensagem: 'Erro ao cadastrado a Matéria-prima!'
             });
         }
     };
 
     const handleAtualizar = async (formData) => {
         try {
-            const response = await fetch(`http://localhost:3450/fornecedorSupri/fornecedores_suprimentos/editar/${formData.id}`, {
+            const camposIgnorados = ['fornecedorNome', 'fornecedorAtivo', 'criadoEm', 'fornecedorNome', 'fornecedorAtivo'];
+            const response = await fetch(`http://localhost:3450/estoque/estoque_materiaprima/editar/${formData.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    ...formData,
-                    ativo: formData.ativo ? true : false,
-                    cliente_id: formData.cliente_id || 1
+                    ...Object.fromEntries(
+                        Object.entries(formData).filter(([key]) => !camposIgnorados.includes(key))
+                    ),
+                    idCliente: formData.idCliente || 1
                 })
             });
 
@@ -204,35 +208,34 @@ export default function SuprimentosMain() {
             if (response.ok) {
                 setSnackbar({
                     open: true,
-                    message: data.mensagem || 'Fornecedor atualizado com sucesso!',
+                    message: data.mensagem || 'Matéria-prima atualizada com sucesso!',
                     severity: 'success',
-                    mensagem: 'Fornecedor atualizado com sucesso'
+                    mensagem: 'Registro atualizado com sucesso!'
                 });
-                setFornecedorSelecionado(null);
+                setDataSelecionado(null);
                 setModoEdicao(false);
                 fetchData();
             } else {
                 setSnackbar({
                     open: true,
-                    message: data.mensagem || 'Erro ao atualizar fornecedor.',
+                    message: data.mensagem || 'Erro ao atualizar matéria-prima.',
                     severity: 'error',
-                    mensagem: 'Erro ao atualizar fornecedor.'
+                    mensagem: 'Registro atualizado com sucesso!'
                 });
             }
         } catch (error) {
-            console.error('Erro ao atualizar fornecedor:', error);
+            console.error('Erro ao atualizar matéria-prima:', error);
             setSnackbar({
                 open: true,
-                message: 'Erro ao atualizar fornecedor.',
-                severity: 'error',
-                mensagem: 'Erro ao atualizar fornecedor.'
+                message: 'Erro ao atualizar matéria-prima.',
+                severity: 'error'
             });
         }
     };
 
     const handleDeletar = async (id) => {
         try {
-            const response = await fetch(`http://localhost:3450/fornecedorSupri/fornecedores_suprimentos/deletar/${id}`, {
+            const response = await fetch(`http://localhost:3450/estoque/estoque_materiaprima/deletar/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json'
@@ -244,28 +247,27 @@ export default function SuprimentosMain() {
             if (response.ok) {
                 setSnackbar({
                     open: true,
-                    message: data.mensagem || 'Fornecedor excluído com sucesso!',
+                    message: data.mensagem || 'Registro excluído com sucesso!',
                     severity: 'success',
-                    mensagem: 'Fornecedor excluído com sucesso!'
+                    mensagem: 'Registro excluído com sucesso!'
                 });
-                setFornecedorSelecionado(null);
+                setDataSelecionado(null);
                 setModoEdicao(false);
                 fetchData();
             } else {
                 setSnackbar({
                     open: true,
-                    message: data.mensagem || 'Erro ao excluir fornecedor.',
+                    message: data.mensagem || 'Erro ao excluir o Registro.',
                     severity: 'error',
-                    mensagem: 'Erro ao excluir fornecedor.'
+                    mensagem: 'Erro ao excluir o Registro.'
                 });
             }
         } catch (error) {
-            console.error('Erro ao excluir fornecedor:', error);
             setSnackbar({
                 open: true,
-                message: 'Erro ao excluir fornecedor.',
+                message: 'Erro ao excluir o Registro.',
                 severity: 'error',
-                mensagem: 'Erro ao excluir fornecedor.'
+                mensagem: 'Erro ao excluir o Registro.'
             });
         }
     };
@@ -274,7 +276,7 @@ export default function SuprimentosMain() {
         setDialog({
             open: true,
             title: 'Confirmar Cadastro',
-            description: `Deseja realmente cadastrar o fornecedor "${formData.razaoSocial}"?`,
+            description: `Deseja realmente cadastrar o registro "${formData.nome}"?`,
             confirmText: 'Cadastrar',
             cancelText: 'Cancelar',
             confirmColor: 'success',
@@ -286,7 +288,7 @@ export default function SuprimentosMain() {
         setDialog({
             open: true,
             title: 'Confirmar Edição',
-            description: `Deseja salvar as alterações para "${formData.razaoSocial}"?`,
+            description: `Deseja salvar as alterações para "${formData.nome}"?`,
             confirmText: 'Salvar',
             cancelText: 'Cancelar',
             confirmColor: 'primary',
@@ -294,13 +296,13 @@ export default function SuprimentosMain() {
         });
     };
 
-    const abrirDialogExcluir = (fornecedor) => {
-        if (!fornecedor || !fornecedor.id) {
+    const abrirDialogExcluir = (materiais) => {
+        if (!materiais || !materiais.id) {
             setSnackbar({
                 open: true,
-                message: 'Selecione um fornecedor antes de excluir.',
+                message: 'Selecione um registro antes de excluir.',
                 severity: 'warning',
-                mensagem: 'Selecione um fornecedor antes de excluir.'
+                mensagem: 'Selecione um registro antes de excluir.'
             });
             return;
         }
@@ -308,11 +310,11 @@ export default function SuprimentosMain() {
         setDialog({
             open: true,
             title: 'Confirmar Exclusão',
-            description: `Deseja realmente excluir o fornecedor "${fornecedor.razaoSocial}"?`,
+            description: `Deseja realmente excluir o registro "${materiais.razaoSocial}"?`,
             confirmText: 'Excluir',
             cancelText: 'Cancelar',
             confirmColor: 'error',
-            onConfirm: () => handleDeletar(fornecedor.id)
+            onConfirm: () => handleDeletar(materiais.id)
         });
     };
 
@@ -320,28 +322,93 @@ export default function SuprimentosMain() {
         fetchData();
     }, [pagination.page, pagination.perPage]);
 
+    useEffect(() => {
+        const fetchFornecedores = async () => {
+            try {
+                const response = await fetch('http://localhost:3450/fornecedorSupri/fornecedores_suprimentos/lista_simples', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cliente_id: 1 })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    setFornecedores(data.fornecedores);
+                } else {
+                    console.error('Erro ao buscar fornecedores:', data.mensagem);
+                }
+            } catch (err) {
+                console.error('Erro ao buscar fornecedores:', err);
+            }
+        };
+
+        const fetchTiposProduto = async () => {
+            try {
+                const response = await fetch('http://localhost:3450/tipoProdutos/tipos_produto?categoria=materia_prima');
+                const data = await response.json();
+
+                if (response.ok) {
+                    setTiposProduto(data.tipos || []);
+                } else {
+                    console.error('Erro ao buscar tipos de produto:', data.mensagem);
+                }
+            } catch (err) {
+                console.error('Erro ao buscar tipos de produto:', err);
+            }
+        };
+
+        fetchFornecedores();
+        fetchTiposProduto();
+    }, []);
+
     const fields = [
-        { name: 'razaoSocial', label: 'Razão Social', type: 'text', placeholder: 'Digite a razão social' },
-        { name: 'cidade', label: 'Cidade', type: 'text', placeholder: 'Digite a cidade' },
-        { name: 'estado', label: 'Estado', type: 'text', placeholder: 'Digite o estado (UF)' },
         {
-            name: 'tipoFornecedor',
-            label: 'Tipo de Fornecedor',
+            name: 'nome',
+            label: 'Nome da Matéria-prima',
+            type: 'text',
+            placeholder: 'Ex: Tecido Tricoline'
+        },
+        {
+            name: 'tipo',
+            label: 'Tipo',
+            type: 'text',
+            placeholder: 'Ex: tecido, linha, zíper...'
+        },
+        {
+            name: 'marca',
+            label: 'Marca',
+            type: 'text',
+            placeholder: 'Ex: Têxtil Brasil'
+        },
+        {
+            name: 'unidade',
+            label: 'Unidade',
             type: 'select',
             options: [
-                { label: 'Nacional', value: 'Nacional' },
-                { label: 'Importado', value: 'Importado' },
-            ],
+                { label: 'Centímetro (cm)', value: 'CM' },
+                { label: 'Metro (m)', value: 'M' },
+                { label: 'Milímetro (mm)', value: 'MM' },
+                { label: 'Quilômetro (km)', value: 'KM' },
+                { label: 'Polegada (in)', value: 'IN' },
+                { label: 'Peça (un)', value: 'UN' },
+                { label: 'Rolo', value: 'Rolo' },
+            ]
         },
-        { name: 'ativo', label: 'Ativo?', type: 'checkbox' }
+        {
+            name: 'localArmazenamento',
+            label: 'Local de Armazenamento',
+            type: 'text',
+            placeholder: 'Ex: Prateleira 2A'
+        }
     ];
 
     const columns = [
-        { field: 'razaoSocial', headerName: 'Razão Social' },
-        { field: 'cidade', headerName: 'Cidade' },
-        { field: 'estado', headerName: 'UF' },
-        { field: 'tipoFornecedor', headerName: 'Tipo' },
-        { field: 'ativo', headerName: 'Ativo' },
+        { field: 'nome', headerName: 'Nome', flex: 1 },
+        { field: 'marca', headerName: 'Marca', flex: 1 },
+        { field: 'quantidade', headerName: 'Qtd. Estoque', width: 130 },
+        { field: 'unidade', headerName: 'Unidade', width: 100 },
+        { field: 'fornecedorNome', headerName: 'Fornecedor', flex: 1 },
         {
             field: 'selecionar',
             headerName: 'Selecionar',
@@ -371,12 +438,12 @@ export default function SuprimentosMain() {
             <Box className="breadcrumb">
                 <Breadcrumb
                     routeSegments={[
-                        { name: "Fornecedores", path: "/material" },
+                        { name: "Estoque", path: "/material" },
                         {
                             name: (
                                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                    <AiFillProduct style={{ marginRight: 6 }} />
-                                    Suprimentos
+                                    <GiWireCoil style={{ marginRight: 6 }} />
+                                    Matéria-prima
                                 </Box>
                             )
                         }
@@ -390,7 +457,7 @@ export default function SuprimentosMain() {
                 onChange={handleChange}
                 onFilter={handleFilter}
                 onClear={handleClear}
-                title="Filtros de Fornecedores de suprimentos"
+                title="Filtros de matéria-prima"
                 expanded={painelExpandido}
                 onToggle={(event, isExpanded) => setPainelExpandido(isExpanded)}
             >
@@ -421,9 +488,11 @@ export default function SuprimentosMain() {
                 </Alert>
             </Snackbar>
 
-            <FornecedorForm
-                fornecedor={fornecedorSelecionado}
+            <EstoqueMateriaPrima
+                materiais={dataSelecionado}
                 modoEdicao={modoEdicao}
+                fornecedores={fornecedores}
+                tiposProduto={tiposProduto}
                 onRequestSubmit={(formData) =>
                     modoEdicao
                         ? abrirDialogEditar(formData)
@@ -431,7 +500,7 @@ export default function SuprimentosMain() {
                 }
                 onRequestDelete={(formData) => abrirDialogExcluir(formData)}
                 onClearAll={() => {
-                    setFornecedorSelecionado(null);
+                    setDataSelecionado(null);
                     setModoEdicao(false);
                 }}
                 onEditClick={() => setModoEdicao(true)}

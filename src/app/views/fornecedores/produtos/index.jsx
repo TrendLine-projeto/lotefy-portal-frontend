@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Breadcrumb } from "app/components";
 import { Snackbar, Alert } from "@mui/material";
-import { FornecedorForm } from '../../../components/Forms/FornecedorForm';
-import { AiFillProduct } from "react-icons/ai";
+import { FornecedorProdutosForm } from '../../../components/Forms/FornecedorProdutosForm';
+import { GoPackageDependencies } from "react-icons/go";
 import ExpandableFilterPanel from '../../../components/HeaderFilterContainer/index';
 import ConfirmDialog from '../../../components/Dialogs/ConfirmDialog';
 import Loading from '../../../components/MatxLoading';
@@ -20,14 +20,14 @@ const Container = styled("div")(({ theme }) => ({
     }
 }));
 
-export default function SuprimentosMain() {
+export default function ProdutosMain() {
     const [filters, setFilters] = useState({});
     const [fornecedorSelecionado, setFornecedorSelecionado] = useState(null);
     const [data, setData] = useState([]);
     const [pagination, setPagination] = useState({ page: 1, perPage: 10, total: 0 });
     const [loading, setLoading] = useState(false);
     const [painelExpandido, setPainelExpandido] = useState(false);
-    const [modoEdicao, setModoEdicao] = useState(true);
+    const [modoEdicao, setModoEdicao] = useState(false);
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: '',
@@ -64,7 +64,7 @@ export default function SuprimentosMain() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:3450/fornecedorSupri/fornecedores_suprimentos/buscar', {
+            const res = await fetch('http://localhost:3450/fornecedorProd/fornecedores_producao/buscar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -88,7 +88,7 @@ export default function SuprimentosMain() {
                     open: true,
                     message: result.mensagem,
                     severity: 'info',
-                    mensagem: 'Nenhum fornecedor encontrado'
+                    mensagem: 'Nenhum fornecedor de produtos encontrado'
                 });
             } else {
                 setData(result.fornecedores.map(f => ({
@@ -102,7 +102,7 @@ export default function SuprimentosMain() {
                 });
             }
         } catch (error) {
-            console.error('Erro ao buscar fornecedores:', error);
+            console.error('Erro ao buscar fornecedores de produtos:', error);
         } finally {
             setLoading(false);
         }
@@ -110,7 +110,7 @@ export default function SuprimentosMain() {
 
     const handleSelect = async (id) => {
         try {
-            const res = await fetch(`http://localhost:3450/fornecedorSupri/fornecedores_suprimentos/${id}`);
+            const res = await fetch(`http://localhost:3450/fornecedorProd/fornecedores_producao/${id}`);
             const result = await res.json();
             setFornecedorSelecionado(result.fornecedor);
 
@@ -127,24 +127,24 @@ export default function SuprimentosMain() {
             } else {
                 setSnackbar({
                     open: true,
-                    message: data.mensagem || '1 Erro ao selecionar um Fornecedor!',
+                    message: data.mensagem || 'Erro ao selecionar um Fornecedor de produto!',
                     severity: 'error',
-                    mensagem: '1 Erro ao selecionar um Fornecedor!'
+                    mensagem: 'Erro ao selecionar um Fornecedor de produto!'
                 });
             }
         } catch (err) {
             setSnackbar({
                 open: true,
-                message: data.mensagem || '2 Erro ao selecionar o Fornecedor!',
+                message: data.mensagem || 'Erro ao selecionar o Fornecedor de produto!',
                 severity: 'error',
-                mensagem: '2 Erro ao selecionar o Fornecedor!'
+                mensagem: 'Erro ao selecionar o Fornecedor de produto!'
             });
         }
     };
 
     const handleCadastrar = async (formData) => {
         try {
-            const response = await fetch('http://localhost:3450/fornecedorSupri/fornecedores_suprimentos', {
+            const response = await fetch('http://localhost:3450/fornecedorProd/fornecedores_producao', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -163,31 +163,31 @@ export default function SuprimentosMain() {
                 fetchData();
                 setSnackbar({
                     open: true,
-                    message: data.mensagem || 'Fornecedor cadastrado com sucesso!',
+                    message: data.mensagem || 'Fornecedor de produtos cadastrado com sucesso!',
                     severity: 'success',
                     mensagem: 'Cadastrado realizado com sucesso'
                 });
             } else {
                 setSnackbar({
                     open: true,
-                    message: data.mensagem || 'Erro ao cadastrado um Fornecedor!',
+                    message: data.mensagem || 'Erro ao cadastrado um Fornecedor de produtos!',
                     severity: 'error',
-                    mensagem: 'Erro ao cadastrado um Fornecedor!'
+                    mensagem: 'Erro ao cadastrado um Fornecedor de produtos!'
                 });
             }
         } catch (error) {
             setSnackbar({
                 open: true,
-                message: data.mensagem || 'Erro ao cadastrado um Fornecedor!',
+                message: data.mensagem || 'Erro ao cadastrado um Fornecedor de produtos!',
                 severity: 'error',
-                mensagem: 'Erro ao cadastrado um Fornecedor!'
+                mensagem: 'Erro ao cadastrado um Fornecedor de produtos!'
             });
         }
     };
 
     const handleAtualizar = async (formData) => {
         try {
-            const response = await fetch(`http://localhost:3450/fornecedorSupri/fornecedores_suprimentos/editar/${formData.id}`, {
+            const response = await fetch(`http://localhost:3450/fornecedorSupri/fornecedores_producao/editar/${formData.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -232,7 +232,7 @@ export default function SuprimentosMain() {
 
     const handleDeletar = async (id) => {
         try {
-            const response = await fetch(`http://localhost:3450/fornecedorSupri/fornecedores_suprimentos/deletar/${id}`, {
+            const response = await fetch(`http://localhost:3450/fornecedorProd/fornecedores_producao/deletar/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json'
@@ -244,9 +244,9 @@ export default function SuprimentosMain() {
             if (response.ok) {
                 setSnackbar({
                     open: true,
-                    message: data.mensagem || 'Fornecedor excluído com sucesso!',
+                    message: data.mensagem || 'Fornecedor de produto excluído com sucesso!',
                     severity: 'success',
-                    mensagem: 'Fornecedor excluído com sucesso!'
+                    mensagem: 'Fornecedor de produto excluído com sucesso!'
                 });
                 setFornecedorSelecionado(null);
                 setModoEdicao(false);
@@ -254,18 +254,18 @@ export default function SuprimentosMain() {
             } else {
                 setSnackbar({
                     open: true,
-                    message: data.mensagem || 'Erro ao excluir fornecedor.',
+                    message: data.mensagem || 'Erro ao excluir fornecedor de produto.',
                     severity: 'error',
-                    mensagem: 'Erro ao excluir fornecedor.'
+                    mensagem: 'Erro ao excluir fornecedor de produto.'
                 });
             }
         } catch (error) {
-            console.error('Erro ao excluir fornecedor:', error);
+            console.error('Erro ao excluir fornecedor de produto:', error);
             setSnackbar({
                 open: true,
-                message: 'Erro ao excluir fornecedor.',
+                message: 'Erro ao excluir fornecedor de produto.',
                 severity: 'error',
-                mensagem: 'Erro ao excluir fornecedor.'
+                mensagem: 'Erro ao excluir fornecedor de produto.'
             });
         }
     };
@@ -274,7 +274,7 @@ export default function SuprimentosMain() {
         setDialog({
             open: true,
             title: 'Confirmar Cadastro',
-            description: `Deseja realmente cadastrar o fornecedor "${formData.razaoSocial}"?`,
+            description: `Deseja realmente cadastrar o Fornecedor de produtos "${formData.razaoSocial}"?`,
             confirmText: 'Cadastrar',
             cancelText: 'Cancelar',
             confirmColor: 'success',
@@ -298,9 +298,9 @@ export default function SuprimentosMain() {
         if (!fornecedor || !fornecedor.id) {
             setSnackbar({
                 open: true,
-                message: 'Selecione um fornecedor antes de excluir.',
+                message: 'Selecione um Fornecedor de produtos antes de excluir.',
                 severity: 'warning',
-                mensagem: 'Selecione um fornecedor antes de excluir.'
+                mensagem: 'Selecione um Fornecedor de produtos antes de excluir.'
             });
             return;
         }
@@ -308,7 +308,7 @@ export default function SuprimentosMain() {
         setDialog({
             open: true,
             title: 'Confirmar Exclusão',
-            description: `Deseja realmente excluir o fornecedor "${fornecedor.razaoSocial}"?`,
+            description: `Deseja realmente excluir o Fornecedor de produtos "${fornecedor.razaoSocial}"?`,
             confirmText: 'Excluir',
             cancelText: 'Cancelar',
             confirmColor: 'error',
@@ -375,8 +375,8 @@ export default function SuprimentosMain() {
                         {
                             name: (
                                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                    <AiFillProduct style={{ marginRight: 6 }} />
-                                    Suprimentos
+                                    <GoPackageDependencies style={{ marginRight: 6 }} />
+                                    Produtos
                                 </Box>
                             )
                         }
@@ -390,7 +390,7 @@ export default function SuprimentosMain() {
                 onChange={handleChange}
                 onFilter={handleFilter}
                 onClear={handleClear}
-                title="Filtros de Fornecedores de suprimentos"
+                title="Filtros de Fornecedores de produtos"
                 expanded={painelExpandido}
                 onToggle={(event, isExpanded) => setPainelExpandido(isExpanded)}
             >
@@ -421,7 +421,7 @@ export default function SuprimentosMain() {
                 </Alert>
             </Snackbar>
 
-            <FornecedorForm
+            <FornecedorProdutosForm
                 fornecedor={fornecedorSelecionado}
                 modoEdicao={modoEdicao}
                 onRequestSubmit={(formData) =>
