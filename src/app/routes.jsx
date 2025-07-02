@@ -15,6 +15,9 @@ const SuprimentosMain = Loadable(lazy(() => import("app/views/fornecedores/supri
 const ProdutosMain = Loadable(lazy(() => import("app/views/fornecedores/produtos/index")));
 const MateriaPrimaMain = Loadable(lazy(() => import("app/views/estoque/materiaPrima/index")));
 const SuprimentosTecnicosMain = Loadable(lazy(() => import("app/views/estoque/insumosTecnicos/index")));
+const ConferenciaMain = Loadable(lazy(() => import("app/views/estoque/conferencia/index")));
+const LotesEntradas = Loadable(lazy(() => import("app/views/lotes/entradas/index")));
+const LoteCompanhamentoMain = Loadable(lazy(() => import("app/views/lotes/acompanhamento/index")));
 
 const routes = [
   { path: "/", element: <Navigate to="dashboard/default" /> },
@@ -34,7 +37,12 @@ const routes = [
       { path: "/fornecedoressuprimentos", element: <SuprimentosMain />, auth: authRoles.editor },
       { path: "/fornecedoresprodutos", element: <ProdutosMain />, auth: authRoles.editor },
       { path: "/suprimentos/materiaprima", element: <MateriaPrimaMain />, auth: authRoles.editor },
-      { path: "/suprimentos/insumostecnicos", element: <SuprimentosTecnicosMain />, auth: authRoles.editor }
+      { path: "/suprimentos/insumostecnicos", element: <SuprimentosTecnicosMain />, auth: authRoles.editor },
+      { path: "/suprimentos/conferencia", element: <ConferenciaMain />, auth: authRoles.editor },
+
+      { path: "/lotes/lotesentradas", element: <LotesEntradas />, auth: authRoles.editor },
+      { path: "/lotes/lotessaidas", element: <ConferenciaMain />, auth: authRoles.editor },
+      { path: "/lotes/lotesacompanhamento", element: <LoteCompanhamentoMain />, auth: authRoles.editor }
     ]
   },
 
