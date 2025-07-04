@@ -22,8 +22,8 @@ export function EtapaNotaFiscal({ data, setData, onNext, onBack }) {
         valorICMS: 0,
         valorIPI: 0,
         transportadora: '',
-        qtdVolumes: '',
-        pesoBruto: ''
+        qtdVolumes: 0,
+        pesoBruto: 0
     });
 
     useEffect(() => {
@@ -59,13 +59,13 @@ export function EtapaNotaFiscal({ data, setData, onNext, onBack }) {
                     numeroNota: ide?.querySelector("nNF")?.textContent || "",
                     serie: ide?.querySelector("serie")?.textContent || "",
                     dataEmissao: ide?.querySelector("dhEmi")?.textContent?.split("T")[0] || "",
-                    valorProdutos: parseFloat(total?.querySelector("vProd")?.textContent || "0"),
-                    valorFrete: parseFloat(total?.querySelector("vFrete")?.textContent || "0"),
-                    valorICMS: parseFloat(total?.querySelector("vICMS")?.textContent || "0"),
-                    valorIPI: parseFloat(total?.querySelector("vIPI")?.textContent || "0"),
+                    valorProdutos: parseFloat(total?.querySelector("vProd")?.textContent || 0),
+                    valorFrete: parseFloat(total?.querySelector("vFrete")?.textContent || 0),
+                    valorICMS: parseFloat(total?.querySelector("vICMS")?.textContent || 0),
+                    valorIPI: parseFloat(total?.querySelector("vIPI")?.textContent || 0),
                     transportadora,
-                    qtdVolumes: vol?.querySelector("qVol")?.textContent || "",
-                    pesoBruto: parseFloat(vol?.querySelector("pesoB")?.textContent || "0")
+                    qtdVolumes: vol?.querySelector("qVol")?.textContent || 0,
+                    pesoBruto: parseFloat(vol?.querySelector("pesoB")?.textContent || 0)
                 };
 
                 setForm(prev => ({ ...prev, ...dadosExtraidos }));

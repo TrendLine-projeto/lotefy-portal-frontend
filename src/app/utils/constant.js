@@ -36,3 +36,5 @@ export const opcoesUnidade = [
   { label: 'Lata', value: 'LATA' },
   { label: 'Frasco', value: 'FRASCO' }
 ];
+
+export const IconsCardDefault = 21;

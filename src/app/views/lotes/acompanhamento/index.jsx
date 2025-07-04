@@ -9,6 +9,7 @@ import Loading from '../../../components/MatxLoading';
 import DataTable from '../../../components/DataTable';
 import styled from "@mui/material/styles/styled";
 import Box from "@mui/material/Box";
+import CardLote from './components/CardLote';
 
 const Container = styled("div")(({ theme }) => ({
     margin: "30px",
@@ -23,7 +24,7 @@ export default function LoteCompanhamentoMain() {
     const [filters, setFilters] = useState({});
     const [dadosSelecionado, setDadosSelecionado] = useState(null);
     const [data, setData] = useState([]);
-    const [pagination, setPagination] = useState({ page: 1, perPage: 10, total: 0 });
+    const [pagination, setPagination] = useState({ page: 1, perPage: 5, total: 0 });
     const [loading, setLoading] = useState(false);
     const [painelExpandido, setPainelExpandido] = useState(false);
     const [modoEdicao, setModoEdicao] = useState(false);
@@ -55,9 +56,9 @@ export default function LoteCompanhamentoMain() {
 
     const handleClear = () => {
         setFilters({});
-        setFornecedorSelecionado(null);
         setPagination((prev) => ({ ...prev, page: 1 }));
         fetchData();
+        setDadosSelecionado(null);
     };
 
     const formatarDataHora = (isoString) => {
@@ -102,6 +103,7 @@ export default function LoteCompanhamentoMain() {
             } else {
                 setData(result.lotes.map(f => ({
                     ...f,
+                    etapas: ['Lote', 'Produtos', 'NF-e', 'Integração', 'Status', 'Finalizado'], // ADICIONADO
                     dataEntrada: formatarDataHora(f.dataEntrada),
                     dataPrevistaSaida: formatarDataHora(f.dataPrevistaSaida),
                     loteIniciado: f.loteIniciado === 1 ? 'Sim' : 'Não'
@@ -250,6 +252,11 @@ export default function LoteCompanhamentoMain() {
                 </Alert>
             </Snackbar>
 
+            {dadosSelecionado ? (
+                <CardLote lote={dadosSelecionado} />
+            ) : (
+                data.map((lote) => <CardLote key={lote.id} lote={lote} />)
+            )}
 
             <ConfirmDialog
                 open={dialog.open}

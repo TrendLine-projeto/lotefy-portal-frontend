@@ -1,0 +1,264 @@
+import React, { useState } from 'react';
+import { Box, Typography, Grid, Divider, Tooltip } from '@mui/material';
+import { FaPen, FaBoxOpen, FaFileAlt, FaLink, FaPowerOff, FaFlagCheckered } from 'react-icons/fa';
+import { IconsCardDefault } from '../../../../utils/constant';
+import InfoHeaderCard from './InforHeaderCard';
+import DataTable from '../../../../components/DataTable/index';
+import { buildColumnsWithEllipsis } from '../../../../utils/buildColumns';
+import { Collapse } from '@mui/material'
+
+const icones = {
+    'Lote': <FaPen size={IconsCardDefault} />,
+    'Produtos': <FaBoxOpen size={IconsCardDefault} />,
+    'NF-e': <FaFileAlt size={IconsCardDefault} />,
+    'Integração': <FaLink size={IconsCardDefault} />,
+    'Status': <FaPowerOff size={IconsCardDefault} />,
+    'Finalizado': <FaFlagCheckered size={IconsCardDefault} />
+};
+
+const getEtapasConcluidasFromLote = (lote) => {
+    if (!lote) return 0;
+
+    if (lote.loteFinalizado === "Sim" || lote.loteFinalizado === 1) return 6;
+    if (lote.loteIniciado === "Não" || lote.loteIniciado === 0) return 4;
+    return 5;
+};
+
+const etapasDefault = ['Lote', 'Produtos', 'NF-e', 'Integração', 'Status', 'Finalizado'];
+
+const CardLote = ({ lote }) => {
+    const [etapaExpandida, setEtapaExpandida] = useState(null);
+    const {
+        numeroIdentificador,
+        nomeEntregador,
+        nomeRecebedor,
+        valorEstimado,
+        valorHoraEstimado,
+        dataEntrada,
+        dataPrevistaSaida,
+        dataInicio,
+        loteIniciado,
+        loteFinalizado,
+        idFilial,
+        idFornecedor_producao,
+        fornecedor,
+        notasFiscais,
+        produtos
+    } = lote;
+
+    // Define etapa atual (você pode trocar pela lógica real de progresso)
+    const etapasConcluidas = getEtapasConcluidasFromLote(lote);
+
+    const colunasProdutos = buildColumnsWithEllipsis([
+        { field: 'numeroIdentificador', headerName: 'Identificador' },
+        { field: 'nomeProduto', headerName: 'Produto' },
+        { field: 'tipoEstilo', headerName: 'Estilo' },
+        { field: 'tamanho', headerName: 'Tamanho' },
+        { field: 'corPrimaria', headerName: 'Cor Primária' },
+        { field: 'corSecundaria', headerName: 'Cor Secundária' },
+        { field: 'quantidadeProduto', headerName: 'Qtd' },
+        { field: 'valorPorPeca', headerName: 'Valor Unitário' },
+        { field: 'someValorTotalProduto', headerName: 'Valor Total' }
+    ]);
+
+    const colunasNotas = buildColumnsWithEllipsis([
+        { field: 'numeroNota', headerName: 'Número' },
+        { field: 'serie', headerName: 'Série' },
+        { field: 'dataEmissao', headerName: 'Data Emissão' },
+        { field: 'valorProdutos', headerName: 'Valor Produtos' },
+        { field: 'valorFrete', headerName: 'Valor Frete' },
+        { field: 'valorICMS', headerName: 'ICMS' },
+        { field: 'valorIPI', headerName: 'IPI' },
+        { field: 'transportadora', headerName: 'Transportadora' },
+        { field: 'qtdVolumes', headerName: 'Volumes' },
+        { field: 'pesoBruto', headerName: 'Peso Bruto' }
+    ]);
+
+    const colunasLote = buildColumnsWithEllipsis([
+        { field: 'numeroIdentificador', headerName: 'Identificação' },
+        { field: 'nomeEntregador', headerName: 'Entregador' },
+        { field: 'nomeRecebedor', headerName: 'Recebedor' },
+        { field: 'valorEstimado', headerName: 'Valor Estimado' },
+        { field: 'valorHoraEstimado', headerName: 'Valor Hora' },
+        { field: 'dataEntrada', headerName: 'Entrada' },
+        { field: 'dataPrevistaSaida', headerName: 'Saída Prevista' }
+    ]);
+
+    const TableWrapper = ({ children }) => (
+        <Box
+            mt={2}
+            sx={{
+                '& td': {
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    maxWidth: 150,
+                    fontSize: '13px'
+                }
+            }}
+        >
+            {children}
+        </Box>
+    );
+
+    const formatarDataHora = (isoString) => {
+        const date = new Date(isoString);
+        const dia = String(date.getDate()).padStart(2, '0');
+        const mes = String(date.getMonth() + 1).padStart(2, '0');
+        const ano = date.getFullYear();
+        const horas = String(date.getHours()).padStart(2, '0');
+        const minutos = String(date.getMinutes()).padStart(2, '0');
+        return `${dia}/${mes}/${ano} ${horas}:${minutos}`;
+    };
+
+    return (
+        <Box sx={{ mt: 5, mb: 4, p: 3, borderRadius: 2, boxShadow: 2, backgroundColor: '#fff', minHeight: '200px' }}>
+
+            {/* Header do Card */}
+            <Box sx={{ mb: 3, color: '#5a5a5a' }}>
+                <InfoHeaderCard
+                    items={[
+                        { label: 'Identificação', value: numeroIdentificador },
+                        { label: 'CNPJ', value: fornecedor?.cnpj },
+                        { label: 'Razão social', value: fornecedor?.razaoSocial },
+                        { label: 'Data de criação', value: dataEntrada ? new Date(dataEntrada).toLocaleString() : '-' },
+                        { label: 'Valor Estimado', value: `R$ ${valorEstimado}` },
+                        { label: 'Nome do Recebedor', value: nomeRecebedor },
+                    ]}
+                />
+            </Box>
+
+            {/* Timeline visual */}
+            <Box sx={{ position: 'relative', mt: 2, mb: 2 }}>
+                <Box sx={{
+                    position: 'absolute',
+                    top: '37px',
+                    left: '200px',
+                    right: '200px',
+                    height: '2px',
+                    backgroundColor: '#969696',
+                    zIndex: 0
+                }}
+                />
+
+                <Box
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        px: 5,
+                        position: 'relative',
+                        zIndex: 1
+                    }}
+                >
+                    {etapasDefault.map((etapa, index) => {
+                        const isConcluida = index < etapasConcluidas;
+                        const cor = isConcluida ? '#198754' : '#B5B939';
+                        const isAberta = etapaExpandida === etapa;
+
+                        return (
+                            <Box key={etapa} sx={{ textAlign: 'center', flex: 1 }}>
+                                <Box
+                                    sx={{
+                                        width: 75,
+                                        height: 75,
+                                        borderRadius: '50%',
+                                        backgroundColor: '#fff',
+                                        mx: 'auto',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        zIndex: 2,
+                                        cursor: 'pointer'
+                                    }}
+                                    onClick={() => setEtapaExpandida(isAberta ? null : etapa)}
+                                >
+                                    <Box
+                                        sx={{
+                                            width: 50,
+                                            height: 50,
+                                            borderRadius: '50%',
+                                            backgroundColor: cor,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            color: '#fff'
+                                        }}
+                                    >
+                                        {icones[etapa]}
+                                    </Box>
+                                </Box>
+                                <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
+                                    {etapa}
+                                </Typography>
+                            </Box>
+                        );
+                    })}
+                </Box>
+            </Box>
+
+            <Collapse in={etapaExpandida === 'Lote'} timeout={400} unmountOnExit>
+                <TableWrapper>
+                    <DataTable
+                        columns={colunasLote}
+                        rows={[
+                            {
+                                numeroIdentificador,
+                                nomeEntregador,
+                                nomeRecebedor,
+                                valorEstimado,
+                                valorHoraEstimado,
+                                dataEntrada,
+                                dataPrevistaSaida
+                            }
+                        ]}
+                        pagination={false}
+                    />
+                </TableWrapper>
+            </Collapse>
+
+            <Collapse in={etapaExpandida === 'Produtos'} timeout={400} unmountOnExit>
+                <TableWrapper>
+                    <DataTable
+                        columns={colunasProdutos}
+                        rows={produtos || []}
+                        pagination={false}
+                    />
+                </TableWrapper>
+            </Collapse>
+
+            <Collapse in={etapaExpandida === 'NF-e'} timeout={400} unmountOnExit>
+                <TableWrapper>
+                    <DataTable
+                        columns={colunasNotas}
+                        rows={notasFiscais || []}
+                        pagination={false}
+                    />
+                </TableWrapper>
+            </Collapse>
+
+            <Collapse in={etapaExpandida === 'Integração'} timeout={400} unmountOnExit>
+                <Box mt={2} p={2} bgcolor="#f5f5f5" borderRadius={2}>
+                    <Typography variant="body2" color="text.secondary">
+                        Sem integração no momento.
+                    </Typography>
+                </Box>
+
+            </Collapse>
+
+            <Collapse in={etapaExpandida === 'Status'} timeout={400} unmountOnExit>
+                <Box mt={2} p={2} bgcolor="#f5f5f5" borderRadius={2}>
+                    <Typography variant="body2" color="#494949">
+                        <Typography variant="subtitle2">
+                            Data de início da operação:{' '}
+                            {dataInicio ? formatarDataHora(dataInicio) : 'Ainda não iniciado!'}
+                        </Typography>
+                    </Typography>
+                </Box>
+
+            </Collapse>
+
+        </Box>
+    );
+};
+
+export default CardLote;
