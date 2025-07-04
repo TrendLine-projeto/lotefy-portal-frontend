@@ -9,10 +9,15 @@ import MatxLayout from "./components/MatxLayout/MatxLayout";
 import sessionRoutes from "./views/sessions/session-routes";
 import materialRoutes from "app/views/material-kit/MaterialRoutes";
 
-// E-CHART PAGE
 const AppEchart = Loadable(lazy(() => import("app/views/charts/echarts/AppEchart")));
-// DASHBOARD PAGE
 const Analytics = Loadable(lazy(() => import("app/views/dashboard/Analytics")));
+const SuprimentosMain = Loadable(lazy(() => import("app/views/fornecedores/suprimentos/index")));
+const ProdutosMain = Loadable(lazy(() => import("app/views/fornecedores/produtos/index")));
+const MateriaPrimaMain = Loadable(lazy(() => import("app/views/estoque/materiaPrima/index")));
+const SuprimentosTecnicosMain = Loadable(lazy(() => import("app/views/estoque/insumosTecnicos/index")));
+const ConferenciaMain = Loadable(lazy(() => import("app/views/estoque/conferencia/index")));
+const LotesEntradas = Loadable(lazy(() => import("app/views/lotes/entradas/index")));
+const LoteCompanhamentoMain = Loadable(lazy(() => import("app/views/lotes/acompanhamento/index")));
 
 const routes = [
   { path: "/", element: <Navigate to="dashboard/default" /> },
@@ -27,7 +32,17 @@ const routes = [
       // dashboard route
       { path: "/dashboard/default", element: <Analytics />, auth: authRoles.admin },
       // e-chart route
-      { path: "/charts/echarts", element: <AppEchart />, auth: authRoles.editor }
+      { path: "/charts/echarts", element: <AppEchart />, auth: authRoles.editor },
+
+      { path: "/fornecedoressuprimentos", element: <SuprimentosMain />, auth: authRoles.editor },
+      { path: "/fornecedoresprodutos", element: <ProdutosMain />, auth: authRoles.editor },
+      { path: "/suprimentos/materiaprima", element: <MateriaPrimaMain />, auth: authRoles.editor },
+      { path: "/suprimentos/insumostecnicos", element: <SuprimentosTecnicosMain />, auth: authRoles.editor },
+      { path: "/suprimentos/conferencia", element: <ConferenciaMain />, auth: authRoles.editor },
+
+      { path: "/lotes/lotesentradas", element: <LotesEntradas />, auth: authRoles.editor },
+      { path: "/lotes/lotessaidas", element: <ConferenciaMain />, auth: authRoles.editor },
+      { path: "/lotes/lotesacompanhamento", element: <LoteCompanhamentoMain />, auth: authRoles.editor }
     ]
   },
 

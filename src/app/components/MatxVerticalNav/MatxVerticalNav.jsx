@@ -1,21 +1,25 @@
 import { Fragment } from "react";
 import { NavLink } from "react-router-dom";
+import { Paragraph, Span } from "../Typography";
+import { GoInbox } from "react-icons/go";
 import Box from "@mui/material/Box";
 import ButtonBase from "@mui/material/ButtonBase";
+import useSettings from "app/hooks/useSettings";
+import MatxVerticalNavExpansionPanel from "./MatxVerticalNavExpansionPanel";
 import styled from "@mui/material/styles/styled";
 
-import useSettings from "app/hooks/useSettings";
-import { Paragraph, Span } from "../Typography";
-import MatxVerticalNavExpansionPanel from "./MatxVerticalNavExpansionPanel";
 
 // Importações manuais de ícones
 import { MdDashboard } from "react-icons/md";
 import { FaBoxOpen } from "react-icons/fa";
+import { BsPeopleFill } from "react-icons/bs";
 
 // Mapeamento manual entre string do banco e componente de ícone
 const iconesDisponiveis = {
   MdDashboard: MdDashboard,
   FaBoxOpen: FaBoxOpen,
+  BsPeopleFill : BsPeopleFill,
+  GoInbox: GoInbox 
 };
 
 const getDynamicIcon = (iconName) => {

@@ -3,7 +3,7 @@ import styled from "@mui/material/styles/styled";
 
 import { Span } from "./Typography";
 import { MatxLogo } from "app/components";
-import logoIcon from '../assets/img/icon.png'
+import logoIcon from '../assets/img/logo3.png'
 import useSettings from "app/hooks/useSettings";
 
 // STYLED COMPONENTS
@@ -11,7 +11,7 @@ const BrandRoot = styled("div")(() => ({
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-  padding: "20px 18px 20px 29px"
+  padding: "7px 0px 0px 0px"
 }));
 
 const StyledSpan = styled(Span)(({ mode }) => ({
@@ -28,13 +28,10 @@ export default function Brand({ children }) {
   const { mode } = leftSidebar;
 
   return (
-    <div style={{ backgroundColor: '#fff', marginBottom: '30px',}}>
-      <BrandRoot>
-        <Box display="flex" alignItems="center">
-          <img style={{width: '30px',}} src={logoIcon} />
-          <StyledSpan mode={mode} className="sidenavHoverShow">
-            Trendline
-          </StyledSpan>
+    <div style={{ backgroundColor: '#fff', marginBottom: '30px', }}>
+      <BrandRoot sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', }}>
+          <img style={{ width: '120px', }} src={logoIcon} />
         </Box>
       </BrandRoot>
     </div>

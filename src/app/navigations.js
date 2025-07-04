@@ -1,5 +1,6 @@
 const navigations = [
   { name: "Dashboard", path: "/dashboard/default", icon: "dashboard" },
+  { name: "Fornecedores de Produtos", path: "/fornecedoresprodutos", icon: "dashboard" },
   { label: "PAGES", type: "label" },
   {
     name: "Session/Auth",
