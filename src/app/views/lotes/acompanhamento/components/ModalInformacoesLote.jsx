@@ -69,10 +69,10 @@ const ModalInformacoesLote = ({ open, onClose, lote, onSave }) => {
                     <FaPowerOff size={14} style={{ marginRight: 6 }} />
                     Operação
                 </Box>
-                <Box sx={abaStyleLote(abaSelecionada === 'valores')} onClick={() => setAbaSelecionada('valores')}>
+                {/*<Box sx={abaStyleLote(abaSelecionada === 'valores')} onClick={() => setAbaSelecionada('valores')}>
                     <FaDollarSign size={14} style={{ marginRight: 6 }} />
                     Valores
-                </Box>
+                </Box> */}
             </Box>
 
             <DialogContent sx={{ mt: '20px' }}>
@@ -101,7 +101,7 @@ const ModalInformacoesLote = ({ open, onClose, lote, onSave }) => {
                         <Grid item xs={12} sm={6} md={4}>
                             <TextField
                                 label="Data de Entrada"
-                                value={formatarDataHora(formData.dataEntrada)}
+                                value={formData.numeroIdentificador}
                                 disabled
                                 fullWidth
                                 size="small"
@@ -149,7 +149,7 @@ const ModalInformacoesLote = ({ open, onClose, lote, onSave }) => {
                     </Grid>
                 )}
 
-                {abaSelecionada === 'valores' && (
+                {/*                 {abaSelecionada === 'valores' && (
                     <Grid container spacing={2} rowSpacing={4}>
                         <Grid item xs={12} sm={6} md={4}>
                             <MaskedDecimalInput
@@ -170,7 +170,7 @@ const ModalInformacoesLote = ({ open, onClose, lote, onSave }) => {
                             />
                         </Grid>
                     </Grid>
-                )}
+                )} */}
             </DialogContent>
 
             <DialogActions sx={{ px: 3, pb: 2 }}>

@@ -31,6 +31,7 @@ const getEtapasConcluidasFromLote = (lote) => {
 const CardLote = ({ lote }) => {
     const [etapaExpandida, setEtapaExpandida] = useState(null);
     const [modalAberto, setModalAberto] = useState(false);
+    const [modalAberto1, setModalAberto1] = useState(false);
     const [detalhesProduto, setDetalhesProduto] = useState(null);
     const [detalhesLote, setDetalhesLote] = useState(null);
     const etapasDefault = ['Lote', 'Produtos', 'NF-e', 'Integração', 'Status', 'Finalizado'];
@@ -69,8 +70,8 @@ const CardLote = ({ lote }) => {
             const res = await fetch(`http://localhost:3450/lotes/entrada_lotes/${id}`);
             const result = await res.json();
 
-            setDetalhesLote(result);
-            setModalAberto(true);
+            setDetalhesLote(result.lote);
+            setModalAberto1(true);
         } catch (error) {
             console.error('Erro ao buscar detalhes do lote:', error);
         }
@@ -97,6 +98,10 @@ const CardLote = ({ lote }) => {
     const handleFecharModal = () => {
         setModalAberto(false);
         setDetalhesProduto(null);
+    };
+
+    const handleFecharModal1 = () => {
+        setModalAberto1(false);
         setDetalhesLote(null);
     };
 
@@ -238,9 +243,9 @@ const CardLote = ({ lote }) => {
             />
 
             <ModalInformacoesLote
-                open={modalAberto}
-                onClose={handleFecharModal}
-                produto={detalhesLote}
+                open={modalAberto1}
+                onClose={handleFecharModal1}
+                lote={detalhesLote}
                 onSave={handleSalvarProduto}
             />
 
