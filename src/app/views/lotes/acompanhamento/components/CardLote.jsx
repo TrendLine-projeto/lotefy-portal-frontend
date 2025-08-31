@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
-import { Box, Typography, Grid, Divider, Tooltip } from '@mui/material';
+import { Box, Typography, Grid, Divider, Tooltip, Dialog, DialogTitle, DialogContent, CircularProgress, DialogActions, Button } from '@mui/material';
 import { FaPen, FaBoxOpen, FaFileAlt, FaLink, FaPowerOff, FaFlagCheckered } from 'react-icons/fa';
 import { IconsCardDefault } from '../../../../utils/constant';
-import InfoHeaderCard from './InforHeaderCard';
-import DataTable from '../../../../components/DataTable/index';
 import { buildColumnsWithEllipsis } from '../../../../utils/buildColumns';
 import { Collapse } from '@mui/material'
+import InfoHeaderCard from './InforHeaderCard';
+import DataTable from '../../../../components/DataTable/index';
+import TableWrapper from '../../../../components/DataTable/TableWrapper';
+import ModalInformacoesProduto from '../components/ModalInformacoesProduto';
+import ModalInformacoesLote from '../components/ModalInformacoesLote';
+import imgIcon from '../../../../assets/img/images.png'
 
 const icones = {
     'Lote': <FaPen size={IconsCardDefault} />,
@@ -24,10 +28,12 @@ const getEtapasConcluidasFromLote = (lote) => {
     return 5;
 };
 
-const etapasDefault = ['Lote', 'Produtos', 'NF-e', 'Integração', 'Status', 'Finalizado'];
-
 const CardLote = ({ lote }) => {
     const [etapaExpandida, setEtapaExpandida] = useState(null);
+    const [modalAberto, setModalAberto] = useState(false);
+    const [detalhesProduto, setDetalhesProduto] = useState(null);
+    const [detalhesLote, setDetalhesLote] = useState(null);
+    const etapasDefault = ['Lote', 'Produtos', 'NF-e', 'Integração', 'Status', 'Finalizado'];
     const {
         numeroIdentificador,
         nomeEntregador,
@@ -46,7 +52,54 @@ const CardLote = ({ lote }) => {
         produtos
     } = lote;
 
-    // Define etapa atual (você pode trocar pela lógica real de progresso)
+    const handleAbrirDetalhes = async (id) => {
+        try {
+            const res = await fetch(`http://localhost:3450/produtorProducao/produtos_producao/${id}`);
+            const result = await res.json();
+
+            setDetalhesProduto(result.produtoProducao);
+            setModalAberto(true);
+        } catch (error) {
+            console.error('Erro ao buscar detalhes do produto:', error);
+        }
+    };
+
+    const handleAbrirDetalhesLote = async (id) => {
+        try {
+            const res = await fetch(`http://localhost:3450/lotes/entrada_lotes/${id}`);
+            const result = await res.json();
+
+            setDetalhesLote(result);
+            setModalAberto(true);
+        } catch (error) {
+            console.error('Erro ao buscar detalhes do lote:', error);
+        }
+    };
+
+    const handleSalvarProduto = async (produtoAtualizado) => {
+        try {
+            const res = await fetch(`http://localhost:3450/produtorProducao/produtos_producao/${produtoAtualizado.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(produtoAtualizado)
+            });
+
+            if (res.ok) {
+                console.log('Produto atualizado com sucesso!');
+            } else {
+                console.error('Erro ao atualizar produto');
+            }
+        } catch (err) {
+            console.error('Erro na requisição:', err);
+        }
+    };
+
+    const handleFecharModal = () => {
+        setModalAberto(false);
+        setDetalhesProduto(null);
+        setDetalhesLote(null);
+    };
+
     const etapasConcluidas = getEtapasConcluidasFromLote(lote);
 
     const colunasProdutos = buildColumnsWithEllipsis([
@@ -58,7 +111,35 @@ const CardLote = ({ lote }) => {
         { field: 'corSecundaria', headerName: 'Cor Secundária' },
         { field: 'quantidadeProduto', headerName: 'Qtd' },
         { field: 'valorPorPeca', headerName: 'Valor Unitário' },
-        { field: 'someValorTotalProduto', headerName: 'Valor Total' }
+        { field: 'someValorTotalProduto', headerName: 'Valor Total' },
+        {
+            field: 'blingIdentify',
+            headerName: 'Integrado ERP',
+            renderCell: (row) => {
+                const hasBling = !!row?.blingIdentify;
+                return (
+                    <img
+                        src={imgIcon}
+                        alt={hasBling ? 'Integrado' : 'Não integrado'}
+                        style={{ opacity: hasBling ? 1 : 0.3, width: '27px', height: '27px', }}
+                        title={hasBling ? `ID: ${row.blingIdentify}` : 'Não integrado'}
+                    />
+                );
+            },
+        },
+        {
+            field: 'detalhes',
+            headerName: 'Detalhes',
+            renderCell: (row) => (
+                <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => handleAbrirDetalhes(row.id)}
+                >
+                    Detalhes
+                </Button>
+            )
+        }
     ]);
 
     const colunasNotas = buildColumnsWithEllipsis([
@@ -81,25 +162,46 @@ const CardLote = ({ lote }) => {
         { field: 'valorEstimado', headerName: 'Valor Estimado' },
         { field: 'valorHoraEstimado', headerName: 'Valor Hora' },
         { field: 'dataEntrada', headerName: 'Entrada' },
-        { field: 'dataPrevistaSaida', headerName: 'Saída Prevista' }
+        { field: 'dataPrevistaSaida', headerName: 'Saída Prevista' },
+        {
+            field: 'detalhes',
+            headerName: 'Detalhes',
+            renderCell: (row) => (
+                <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => handleAbrirDetalhesLote(row.id)}
+                >
+                    Detalhes
+                </Button>
+            )
+        }
     ]);
 
-    const TableWrapper = ({ children }) => (
-        <Box
-            mt={2}
-            sx={{
-                '& td': {
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    maxWidth: 150,
-                    fontSize: '13px'
-                }
-            }}
-        >
-            {children}
-        </Box>
-    );
+    const getRowStyles = (dados = [], campoStatus = 'iniciado') => {
+        const styles = {};
+
+        dados.forEach((item, index) => {
+            const valorBruto = item[campoStatus];
+
+            const isOk =
+                valorBruto === 1 ||
+                valorBruto === true ||
+                valorBruto === '1' ||
+                valorBruto === 'true' ||
+                valorBruto === 'Sim';
+
+            const bgColor = isOk ? '#d1f2e2' : '#f2f2f2';
+            const textColor = isOk ? '#3fffa6' : '#555';
+
+            styles[`& tbody tr:nth-of-type(${index + 1})`] = {
+                backgroundColor: bgColor,
+                color: textColor
+            };
+        });
+
+        return styles;
+    };
 
     const formatarDataHora = (isoString) => {
         const date = new Date(isoString);
@@ -127,6 +229,20 @@ const CardLote = ({ lote }) => {
                     ]}
                 />
             </Box>
+
+            <ModalInformacoesProduto
+                open={modalAberto}
+                onClose={handleFecharModal}
+                produto={detalhesProduto}
+                onSave={handleSalvarProduto}
+            />
+
+            <ModalInformacoesLote
+                open={modalAberto}
+                onClose={handleFecharModal}
+                produto={detalhesLote}
+                onSave={handleSalvarProduto}
+            />
 
             {/* Timeline visual */}
             <Box sx={{ position: 'relative', mt: 2, mb: 2 }}>
@@ -168,7 +284,10 @@ const CardLote = ({ lote }) => {
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                         zIndex: 2,
-                                        cursor: 'pointer'
+                                        cursor: 'pointer',
+                                        border: isAberta ? '2px solid #e5ebe8' : '2px solid transparent',
+                                        boxShadow: isAberta ? '0 0 6px rgba(255, 255, 255, 0.5)' : 'none',
+                                        transition: 'border 0.2s, box-shadow 0.2s'
                                     }}
                                     onClick={() => setEtapaExpandida(isAberta ? null : etapa)}
                                 >
@@ -197,37 +316,57 @@ const CardLote = ({ lote }) => {
             </Box>
 
             <Collapse in={etapaExpandida === 'Lote'} timeout={400} unmountOnExit>
-                <TableWrapper>
-                    <DataTable
-                        columns={colunasLote}
-                        rows={[
-                            {
-                                numeroIdentificador,
-                                nomeEntregador,
-                                nomeRecebedor,
-                                valorEstimado,
-                                valorHoraEstimado,
-                                dataEntrada,
-                                dataPrevistaSaida
-                            }
-                        ]}
-                        pagination={false}
-                    />
+                <TableWrapper
+                    // Contados de registros abaixo da tabela
+                    total={produtos?.length || 0}
+                    inicio={1}
+                    fim={produtos?.length || 0}
+                >
+                    <Box sx={getRowStyles([lote], 'loteIniciado')}>
+                        <DataTable
+                            columns={colunasLote}
+                            rows={[{
+                                id: lote.id,
+                                numeroIdentificador: lote.numeroIdentificador,
+                                nomeEntregador: lote.nomeEntregador,
+                                nomeRecebedor: lote.nomeRecebedor,
+                                valorEstimado: lote.valorEstimado,
+                                valorHoraEstimado: lote.valorHoraEstimado,
+                                dataEntrada: lote.dataEntrada,
+                                dataPrevistaSaida: lote.dataPrevistaSaida,
+                                loteIniciado: lote.loteIniciado,
+                                loteFinalizado: lote.loteFinalizado
+                            }]}
+                            pagination={false}
+                        />
+                    </Box>
                 </TableWrapper>
             </Collapse>
 
             <Collapse in={etapaExpandida === 'Produtos'} timeout={400} unmountOnExit>
-                <TableWrapper>
-                    <DataTable
-                        columns={colunasProdutos}
-                        rows={produtos || []}
-                        pagination={false}
-                    />
+                <TableWrapper
+                    // Contados de registros abaixo da tabela
+                    total={produtos?.length || 0}
+                    inicio={1}
+                    fim={produtos?.length || 0}
+                >
+                    <Box sx={getRowStyles(produtos, 'iniciado')}>
+                        <DataTable
+                            columns={colunasProdutos}
+                            rows={produtos || []}
+                            pagination={false}
+                        />
+                    </Box>
                 </TableWrapper>
             </Collapse>
 
             <Collapse in={etapaExpandida === 'NF-e'} timeout={400} unmountOnExit>
-                <TableWrapper>
+                <TableWrapper
+                    // Contados de registros abaixo da tabela
+                    total={produtos?.length || 0}
+                    inicio={1}
+                    fim={produtos?.length || 0}
+                >
                     <DataTable
                         columns={colunasNotas}
                         rows={notasFiscais || []}

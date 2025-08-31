@@ -28,6 +28,21 @@ export function EtapaProdutos({ produtos, setProdutos, onNext, onBack }) {
         dataPrevistaSaida: '',
         imagem: '',
         finalizado: 0,
+
+        marca: '',
+        pesoLiquido: 0,
+        pesoBruto: 0,
+        volumes: 0,
+        itensPorCaixa: 0,
+        descricaoCurta: '',
+        largura: 0,
+        altura: 0,
+        profundidade: 0,
+        estoqueMinimo: 0,
+        estoqueMaximo: 0,
+        estoqueCrossdocking: 0,
+        estoqueLocalizacao: 0,
+
         idEntrada_lotes: 0,
         idFilial: 1
     });
@@ -78,6 +93,19 @@ export function EtapaProdutos({ produtos, setProdutos, onNext, onBack }) {
                 dataPrevistaSaida: '',
                 imagem: '',
                 finalizado: 0,
+                marca: '',
+                pesoLiquido: 0,
+                pesoBruto: 0,
+                volumes: 0,
+                itensPorCaixa: 0,
+                descricaoCurta: '',
+                largura: 0,
+                altura: 0,
+                profundidade: 0,
+                estoqueMinimo: 0,
+                estoqueMaximo: 0,
+                estoqueCrossdocking: 0,
+                estoqueLocalizacao: 0,
                 idEntrada_lotes: 0,
                 idFilial: 1
             });
@@ -185,7 +213,7 @@ export function EtapaProdutos({ produtos, setProdutos, onNext, onBack }) {
             />
 
             <Paper elevation={1} sx={{ p: 3, backgroundColor: '#fafafa', mb: 4 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>Identificação e Características</Typography>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>Identificação e Características Primária</Typography>
                 <Divider sx={{ mb: 2 }} />
 
                 <Grid container spacing={2}>
@@ -226,7 +254,7 @@ export function EtapaProdutos({ produtos, setProdutos, onNext, onBack }) {
                     </Grid>
                 </Grid>
 
-                <Typography variant="subtitle2" sx={{ mt: 4, mb: 1 }}>Estoque e Saída</Typography>
+                <Typography variant="subtitle2" sx={{ mt: 4, mb: 1 }}>Estoque e Saída e Características</Typography>
                 <Divider sx={{ mb: 2 }} />
 
                 <Grid container spacing={2}>
@@ -242,6 +270,89 @@ export function EtapaProdutos({ produtos, setProdutos, onNext, onBack }) {
                             value={form.dataPrevistaSaida}
                             onChange={handleChange}
                             fullWidth
+                        />
+                    </Grid>
+                    <Grid item xs={4}>
+                        <TextField
+                            label="Marca"
+                            name="marca"
+                            value={form.marca}
+                            onChange={handleChange}
+                            fullWidth
+                        />
+                    </Grid>
+                    <Grid item xs={4}>
+                        <TextField
+                            label="Peso líquido (kg)"
+                            name="pesoLiquido"
+                            value={form.pesoLiquido}
+                            onChange={handleChange}
+                            fullWidth
+                        />
+                    </Grid>
+                    <Grid item xs={4}>
+                        <TextField
+                            label="Peso bruto (kg)"
+                            name="pesoBruto"
+                            value={form.pesoBruto}
+                            onChange={handleChange}
+                            fullWidth
+                        />
+                    </Grid>
+                    <Grid item xs={4}>
+                        <TextField
+                            label="Volumes"
+                            name="volumes"
+                            value={form.volumes}
+                            onChange={handleChange}
+                            fullWidth
+                        />
+                    </Grid>
+                    <Grid item xs={4}>
+                        <TextField
+                            label="Itens por caixa"
+                            name="itensPorCaixa"
+                            value={form.itensPorCaixa}
+                            onChange={handleChange}
+                            fullWidth
+                        />
+                    </Grid>
+                    <Grid item xs={4}>
+                        <TextField
+                            label="Largura (cm)"
+                            name="largura"
+                            value={form.largura}
+                            onChange={handleChange}
+                            fullWidth
+                        />
+                    </Grid>
+                    <Grid item xs={6}>
+                        <TextField
+                            label="Altura (cm)"
+                            name="altura"
+                            value={form.altura}
+                            onChange={handleChange}
+                            fullWidth
+                        />
+                    </Grid>
+                    <Grid item xs={6}>
+                        <TextField
+                            label="Profundidade (cm)"
+                            name="profundidade"
+                            value={form.profundidade}
+                            onChange={handleChange}
+                            fullWidth
+                        />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <TextField
+                            label="Descrição curta"
+                            name="descricaoCurta"
+                            value={form.descricaoCurta}
+                            onChange={handleChange}
+                            fullWidth
+                            multiline
+                            minRows={2}
                         />
                     </Grid>
                 </Grid>
