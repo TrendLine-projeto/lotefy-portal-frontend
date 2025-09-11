@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { Box, Typography, Grid, Divider, Tooltip, Dialog, DialogTitle, DialogContent, CircularProgress, DialogActions, Button } from '@mui/material';
 import { FaPen, FaBoxOpen, FaFileAlt, FaLink, FaPowerOff, FaFlagCheckered, FaHourglassStart } from 'react-icons/fa';
+import { RiTimerFill } from "react-icons/ri"
 import { IconsCardDefault } from '../../../../utils/constant';
 import { buildColumnsWithEllipsis } from '../../../../utils/buildColumns';
 import { Collapse } from '@mui/material'
+import { parseIniciado } from '../../../../utils/parseIniciado';
 import InfoHeaderCard from './InforHeaderCard';
 import DataTable from '../../../../components/DataTable/index';
 import TableWrapper from '../../../../components/DataTable/TableWrapper';
 import ModalInformacoesProduto from '../components/ModalInformacoesProduto';
+import ConfirmInicioLoteModal from '../components/ConfirmInicioLoteModal';
 import ModalInformacoesLote from '../components/ModalInformacoesLote';
 import imgIcon from '../../../../assets/img/images.png'
 import MatxLoading from "../../../../components/MatxLoading";
@@ -36,8 +39,8 @@ const CardLote = ({ lote }) => {
     const [detalhesProduto, setDetalhesProduto] = useState(null);
     const [detalhesLote, setDetalhesLote] = useState(null);
     const [salvando, setSalvando] = useState(false);
+    const [openModal, setOpenModal] = useState(false);
     const etapasDefault = ['Lote', 'Produtos', 'NF-e', 'Integração', 'Status', 'Finalizado'];
-    const iniciado = 0;
     const {
         numeroIdentificador,
         nomeEntregador,
@@ -233,6 +236,17 @@ const CardLote = ({ lote }) => {
         return `${dia}/${mes}/${ano} ${horas}:${minutos}`;
     };
 
+    const handleIniciarProducao = (idLote) => {
+        console.log('Iniciando produção do lote', idLote);
+        // Aqui você pode chamar sua API:
+        // fetch(`/lotes/iniciar/${idLote}`, { method: 'POST' })
+        //   .then(res => res.json())
+        //   .then(data => console.log(data))
+        //   .catch(err => console.error(err));
+    };
+
+    const isIniciado = parseIniciado(loteIniciado);
+
     return (
         <Box sx={{ mt: 5, mb: 4, p: 3, borderRadius: 2, boxShadow: 2, backgroundColor: '#fff', minHeight: '200px' }}>
 
@@ -246,7 +260,12 @@ const CardLote = ({ lote }) => {
                         { label: 'Data de criação', value: dataEntrada ? new Date(dataEntrada).toLocaleString() : '-' },
                         { label: 'Valor Estimado', value: `R$ ${valorEstimado}` },
                         { label: 'Nome do Recebedor', value: nomeRecebedor },
-                        { label: "Iniciado", value: (<FaHourglassStart color={iniciado === 0 ? "#e0c00b" : "#1baa16ce"} />) },
+                        {
+                            label: 'Iniciado',
+                            value: isIniciado ?
+                                <RiTimerFill color='#2e8a18' /> :
+                                <FaHourglassStart color='#8f8d19' />,
+                        },
                     ]}
                 />
             </Box>
@@ -277,6 +296,14 @@ const CardLote = ({ lote }) => {
                 onClose={handleFecharModal1}
                 lote={detalhesLote}
                 onSave={handleSalvarProduto}
+            />
+
+            <ConfirmInicioLoteModal
+                open={openModal}
+                onClose={() => setOpenModal(false)}
+                onConfirm={(id) => handleIniciarProducao(id)}
+                loteId={lote.id}
+                numeroIdentificador={lote.numeroIdentificador}
             />
 
             {/* Timeline visual */}
@@ -427,8 +454,20 @@ const CardLote = ({ lote }) => {
                             {dataInicio ? formatarDataHora(dataInicio) : 'Ainda não iniciado!'}
                         </Typography>
                     </Typography>
-                </Box>
 
+                    {/* Se o lote ainda não foi iniciado */}
+                    {parseIniciado(loteIniciado) === false && (
+                        <Box mt={2}>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={() => handleIniciarProducao(lote.id)}
+                            >
+                                Iniciar produção manual
+                            </Button>
+                        </Box>
+                    )}
+                </Box>
             </Collapse>
 
         </Box>
