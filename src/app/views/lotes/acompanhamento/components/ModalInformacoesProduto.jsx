@@ -18,7 +18,7 @@ const abaStyle = (ativa) => ({
     fontSize: '14px'
 });
 
-const ModalInformacoesProduto = ({ open, onClose, produto, onSave }) => {
+const ModalInformacoesProduto = ({ open, onClose, produto, onSave, children }) => {
     const [abaSelecionada, setAbaSelecionada] = useState('detalhes');
     const [formData, setFormData] = useState({});
 
@@ -189,6 +189,8 @@ const ModalInformacoesProduto = ({ open, onClose, produto, onSave }) => {
                 <Button onClick={onClose} variant="outlined">Fechar</Button>
                 <Button onClick={handleSalvar} variant="contained">Salvar</Button>
             </DialogActions>
+
+            {children}
         </Dialog>
     );
 };

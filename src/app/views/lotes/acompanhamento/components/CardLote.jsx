@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Typography, Grid, Divider, Tooltip, Dialog, DialogTitle, DialogContent, CircularProgress, DialogActions, Button } from '@mui/material';
-import { FaPen, FaBoxOpen, FaFileAlt, FaLink, FaPowerOff, FaFlagCheckered } from 'react-icons/fa';
+import { FaPen, FaBoxOpen, FaFileAlt, FaLink, FaPowerOff, FaFlagCheckered, FaHourglassStart } from 'react-icons/fa';
 import { IconsCardDefault } from '../../../../utils/constant';
 import { buildColumnsWithEllipsis } from '../../../../utils/buildColumns';
 import { Collapse } from '@mui/material'
@@ -10,6 +10,7 @@ import TableWrapper from '../../../../components/DataTable/TableWrapper';
 import ModalInformacoesProduto from '../components/ModalInformacoesProduto';
 import ModalInformacoesLote from '../components/ModalInformacoesLote';
 import imgIcon from '../../../../assets/img/images.png'
+import MatxLoading from "../../../../components/MatxLoading";
 
 const icones = {
     'Lote': <FaPen size={IconsCardDefault} />,
@@ -34,7 +35,9 @@ const CardLote = ({ lote }) => {
     const [modalAberto1, setModalAberto1] = useState(false);
     const [detalhesProduto, setDetalhesProduto] = useState(null);
     const [detalhesLote, setDetalhesLote] = useState(null);
+    const [salvando, setSalvando] = useState(false);
     const etapasDefault = ['Lote', 'Produtos', 'NF-e', 'Integração', 'Status', 'Finalizado'];
+    const iniciado = 0;
     const {
         numeroIdentificador,
         nomeEntregador,
@@ -78,20 +81,32 @@ const CardLote = ({ lote }) => {
     };
 
     const handleSalvarProduto = async (produtoAtualizado) => {
+        setSalvando(true);
         try {
-            const res = await fetch(`http://localhost:3450/produtorProducao/produtos_producao/${produtoAtualizado.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(produtoAtualizado)
-            });
+            const res = await fetch(
+                `http://localhost:3450/produtorProducao/produtos_producao/alterar/${produtoAtualizado.id}`,
+                {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ produtoProducao: produtoAtualizado }),
+                }
+            );
 
-            if (res.ok) {
-                console.log('Produto atualizado com sucesso!');
-            } else {
-                console.error('Erro ao atualizar produto');
+            if (!res.ok) {
+                const errTxt = await res.text().catch(() => '');
+                console.error('Erro ao atualizar produto', errTxt);
+                return false;
             }
+
+            await res.json().catch(() => ({}));
+
+            console.log('Produto atualizado com sucesso!');
+            return true;
         } catch (err) {
             console.error('Erro na requisição:', err);
+            return false;
+        } finally {
+            setSalvando(false); // mantém o modal aberto até aqui
         }
     };
 
@@ -231,6 +246,7 @@ const CardLote = ({ lote }) => {
                         { label: 'Data de criação', value: dataEntrada ? new Date(dataEntrada).toLocaleString() : '-' },
                         { label: 'Valor Estimado', value: `R$ ${valorEstimado}` },
                         { label: 'Nome do Recebedor', value: nomeRecebedor },
+                        { label: "Iniciado", value: (<FaHourglassStart color={iniciado === 0 ? "#e0c00b" : "#1baa16ce"} />) },
                     ]}
                 />
             </Box>
@@ -240,7 +256,21 @@ const CardLote = ({ lote }) => {
                 onClose={handleFecharModal}
                 produto={detalhesProduto}
                 onSave={handleSalvarProduto}
-            />
+            >
+                {salvando && (
+                    <Box sx={{
+                        position: 'absolute',
+                        top: 0, left: 0, right: 0, bottom: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: 'rgba(255,255,255,0.6)',
+                        zIndex: 10
+                    }}>
+                        <MatxLoading />
+                    </Box>
+                )}
+            </ModalInformacoesProduto>
 
             <ModalInformacoesLote
                 open={modalAberto1}
