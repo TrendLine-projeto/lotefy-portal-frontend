@@ -42,7 +42,8 @@ const routes = [
 
       { path: "/lotes/lotesentradas", element: <LotesEntradas />, auth: authRoles.editor },
       { path: "/lotes/lotessaidas", element: <ConferenciaMain />, auth: authRoles.editor },
-      { path: "/lotes/lotesacompanhamento", element: <LoteCompanhamentoMain />, auth: authRoles.editor }
+      { path: "/lotes/lotesacompanhamento", element: <LoteCompanhamentoMain />, auth: authRoles.editor },
+      { path: "/lotes/loteemproducao", element: <LoteCompanhamentoMain />, auth: authRoles.editor }
     ]
   },
 

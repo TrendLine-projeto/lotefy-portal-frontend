@@ -26,6 +26,7 @@ const mockData = [
 ];
 
 export default function ConferenciaMain() {
+    const apiUrl = import.meta.env.VITE_API_URL;
     const [filters, setFilters] = useState({});
     const [dadosConferencia, setDadosConferencia] = useState([]);
     const [tabelaSelecionada, setTabelaSelecionada] = useState(null);
@@ -81,7 +82,7 @@ export default function ConferenciaMain() {
 
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:3450/tipoProdutos/conferencia', {
+            const res = await fetch(`${apiUrl}/tipoProdutos/conferencia`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -155,7 +156,7 @@ export default function ConferenciaMain() {
                 id_cliente: 1
             };
 
-            const response = await fetch('http://localhost:3450/tipoProdutos/conferencia/salvar', {
+            const response = await fetch(`${apiUrl}/tipoProdutos/conferencia/salvar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

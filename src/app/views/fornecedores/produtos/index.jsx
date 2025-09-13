@@ -21,6 +21,7 @@ const Container = styled("div")(({ theme }) => ({
 }));
 
 export default function ProdutosMain() {
+    const apiUrl = import.meta.env.VITE_API_URL;
     const [filters, setFilters] = useState({});
     const [fornecedorSelecionado, setFornecedorSelecionado] = useState(null);
     const [data, setData] = useState([]);
@@ -64,7 +65,7 @@ export default function ProdutosMain() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:3450/fornecedorProd/fornecedores_producao/buscar', {
+            const res = await fetch(`${apiUrl}/fornecedorProd/fornecedores_producao/buscar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -110,7 +111,7 @@ export default function ProdutosMain() {
 
     const handleSelect = async (id) => {
         try {
-            const res = await fetch(`http://localhost:3450/fornecedorProd/fornecedores_producao/${id}`);
+            const res = await fetch(`${apiUrl}/fornecedorProd/fornecedores_producao/${id}`);
             const result = await res.json();
             setFornecedorSelecionado(result.fornecedor);
 
@@ -144,7 +145,7 @@ export default function ProdutosMain() {
 
     const handleCadastrar = async (formData) => {
         try {
-            const response = await fetch('http://localhost:3450/fornecedorProd/fornecedores_producao', {
+            const response = await fetch(`${apiUrl}/fornecedorProd/fornecedores_producao`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -187,7 +188,7 @@ export default function ProdutosMain() {
 
     const handleAtualizar = async (formData) => {
         try {
-            const response = await fetch(`http://localhost:3450/fornecedorSupri/fornecedores_producao/editar/${formData.id}`, {
+            const response = await fetch(`${apiUrl}/fornecedorSupri/fornecedores_producao/editar/${formData.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -232,7 +233,7 @@ export default function ProdutosMain() {
 
     const handleDeletar = async (id) => {
         try {
-            const response = await fetch(`http://localhost:3450/fornecedorProd/fornecedores_producao/deletar/${id}`, {
+            const response = await fetch(`${apiUrl}/fornecedorProd/fornecedores_producao/deletar/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json'

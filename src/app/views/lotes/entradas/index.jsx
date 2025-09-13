@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import styled from "@mui/material/styles/styled";
 import { Breadcrumb } from "app/components";
 import { GoPackageDependencies } from "react-icons/go";
-import Box from "@mui/material/Box";
 import { Stepper, Step, StepLabel } from '@mui/material';
 import { Paper } from '@mui/material';
 import { Snackbar, Alert } from "@mui/material";
+import styled from "@mui/material/styles/styled";
+import Box from "@mui/material/Box";
+
 
 // Importação das etapas
 import { EtapaFornecedor } from "./components/EtapaFornecedor";
@@ -24,6 +25,7 @@ const Container = styled("div")(({ theme }) => ({
 }));
 
 export default function LotesEntradas() {
+    const apiUrl = import.meta.env.VITE_API_URL;
     const [etapaAtual, setEtapaAtual] = useState(0);
     const [listaFornecedores, setListaFornecedores] = useState([]);
     const [dados, setDados] = useState({
@@ -50,7 +52,7 @@ export default function LotesEntradas() {
     useEffect(() => {
         const fetchListaFornecedores = async () => {
             try {
-                const resp = await fetch("http://localhost:3450/fornecedorProd/fornecedores_producao/lista_simples", {
+                const resp = await fetch(`${apiUrl}/fornecedorProd/fornecedores_producao/lista_simples`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ cliente_id: 1 }),
@@ -66,7 +68,7 @@ export default function LotesEntradas() {
 
     const handleSelectFornecedor = async (id) => {
         try {
-            const resp = await fetch(`http://localhost:3450/fornecedorProd/fornecedores_producao/${id}`);
+            const resp = await fetch(`${apiUrl}/fornecedorProd/fornecedorProd/fornecedores_producao/${id}`);
             const data = await resp.json();
 
             setDados(prev => ({
@@ -74,7 +76,7 @@ export default function LotesEntradas() {
                 fornecedor: {
                     ...prev.fornecedor,
                     ...data.fornecedor,
-                    fornecedor: id // selecionado no select
+                    fornecedor: id
                 }
             }));
         } catch (err) {
@@ -175,7 +177,7 @@ export default function LotesEntradas() {
         };
 
         try {
-            const resp = await fetch("http://localhost:3450/lotes/entrada_lotes", {
+            const resp = await fetch(`${apiUrl}/lotes/entrada_lotes`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)

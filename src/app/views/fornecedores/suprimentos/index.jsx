@@ -21,6 +21,7 @@ const Container = styled("div")(({ theme }) => ({
 }));
 
 export default function SuprimentosMain() {
+    const apiUrl = import.meta.env.VITE_API_URL;
     const [filters, setFilters] = useState({});
     const [fornecedorSelecionado, setFornecedorSelecionado] = useState(null);
     const [data, setData] = useState([]);
@@ -64,7 +65,7 @@ export default function SuprimentosMain() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:3450/fornecedorSupri/fornecedores_suprimentos/buscar', {
+            const res = await fetch(`${apiUrl}/fornecedorSupri/fornecedores_suprimentos/buscar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -110,7 +111,7 @@ export default function SuprimentosMain() {
 
     const handleSelect = async (id) => {
         try {
-            const res = await fetch(`http://localhost:3450/fornecedorSupri/fornecedores_suprimentos/${id}`);
+            const res = await fetch(`${apiUrl}/fornecedorSupri/fornecedores_suprimentos/${id}`);
             const result = await res.json();
             setFornecedorSelecionado(result.fornecedor);
 
@@ -144,7 +145,7 @@ export default function SuprimentosMain() {
 
     const handleCadastrar = async (formData) => {
         try {
-            const response = await fetch('http://localhost:3450/fornecedorSupri/fornecedores_suprimentos', {
+            const response = await fetch(`${apiUrl}/fornecedorSupri/fornecedores_suprimentos`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -187,7 +188,7 @@ export default function SuprimentosMain() {
 
     const handleAtualizar = async (formData) => {
         try {
-            const response = await fetch(`http://localhost:3450/fornecedorSupri/fornecedores_suprimentos/editar/${formData.id}`, {
+            const response = await fetch(`${apiUrl}/fornecedorSupri/fornecedores_suprimentos/editar/${formData.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -232,7 +233,7 @@ export default function SuprimentosMain() {
 
     const handleDeletar = async (id) => {
         try {
-            const response = await fetch(`http://localhost:3450/fornecedorSupri/fornecedores_suprimentos/deletar/${id}`, {
+            const response = await fetch(`${apiUrl}/fornecedorSupri/fornecedores_suprimentos/deletar/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json'

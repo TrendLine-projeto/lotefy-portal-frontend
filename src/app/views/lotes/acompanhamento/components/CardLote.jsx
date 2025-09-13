@@ -6,6 +6,7 @@ import { IconsCardDefault } from '../../../../utils/constant';
 import { buildColumnsWithEllipsis } from '../../../../utils/buildColumns';
 import { Collapse } from '@mui/material'
 import { parseIniciado } from '../../../../utils/parseIniciado';
+import { Snackbar, Alert } from "@mui/material";
 import InfoHeaderCard from './InforHeaderCard';
 import DataTable from '../../../../components/DataTable/index';
 import TableWrapper from '../../../../components/DataTable/TableWrapper';
@@ -16,12 +17,12 @@ import imgIcon from '../../../../assets/img/images.png'
 import MatxLoading from "../../../../components/MatxLoading";
 
 const icones = {
-    'Lote': <FaPen size={IconsCardDefault} />,
-    'Produtos': <FaBoxOpen size={IconsCardDefault} />,
-    'NF-e': <FaFileAlt size={IconsCardDefault} />,
-    'Integração': <FaLink size={IconsCardDefault} />,
-    'Status': <FaPowerOff size={IconsCardDefault} />,
-    'Finalizado': <FaFlagCheckered size={IconsCardDefault} />
+    '1 - Lote': <FaPen size={IconsCardDefault} />,
+    '2 - Produtos': <FaBoxOpen size={IconsCardDefault} />,
+    '3 - NF-e': <FaFileAlt size={IconsCardDefault} />,
+    '4 - Integração': <FaLink size={IconsCardDefault} />,
+    '5 - Status': <FaPowerOff size={IconsCardDefault} />,
+    '6 - Finalizado': <FaFlagCheckered size={IconsCardDefault} />
 };
 
 const getEtapasConcluidasFromLote = (lote) => {
@@ -32,7 +33,8 @@ const getEtapasConcluidasFromLote = (lote) => {
     return 5;
 };
 
-const CardLote = ({ lote }) => {
+const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
+    const apiUrl = import.meta.env.VITE_API_URL;
     const [etapaExpandida, setEtapaExpandida] = useState(null);
     const [modalAberto, setModalAberto] = useState(false);
     const [modalAberto1, setModalAberto1] = useState(false);
@@ -40,8 +42,9 @@ const CardLote = ({ lote }) => {
     const [detalhesLote, setDetalhesLote] = useState(null);
     const [salvando, setSalvando] = useState(false);
     const [openModal, setOpenModal] = useState(false);
-    const etapasDefault = ['Lote', 'Produtos', 'NF-e', 'Integração', 'Status', 'Finalizado'];
+    const etapasDefault = ['1 - Lote', '2 - Produtos', '3 - NF-e', '4 - Integração', '5 - Status', '6 - Finalizado'];
     const {
+        id: loteId,
         numeroIdentificador,
         nomeEntregador,
         nomeRecebedor,
@@ -58,10 +61,16 @@ const CardLote = ({ lote }) => {
         notasFiscais,
         produtos
     } = lote;
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: '',
+        severity: '',
+        mensagem: ''
+    });
 
     const handleAbrirDetalhes = async (id) => {
         try {
-            const res = await fetch(`http://localhost:3450/produtorProducao/produtos_producao/${id}`);
+            const res = await fetch(`${apiUrl}/produtorProducao/produtos_producao/${id}`);
             const result = await res.json();
 
             setDetalhesProduto(result.produtoProducao);
@@ -73,43 +82,13 @@ const CardLote = ({ lote }) => {
 
     const handleAbrirDetalhesLote = async (id) => {
         try {
-            const res = await fetch(`http://localhost:3450/lotes/entrada_lotes/${id}`);
+            const res = await fetch(`${apiUrl}/lotes/entrada_lotes/${id}`);
             const result = await res.json();
 
             setDetalhesLote(result.lote);
             setModalAberto1(true);
         } catch (error) {
             console.error('Erro ao buscar detalhes do lote:', error);
-        }
-    };
-
-    const handleSalvarProduto = async (produtoAtualizado) => {
-        setSalvando(true);
-        try {
-            const res = await fetch(
-                `http://localhost:3450/produtorProducao/produtos_producao/alterar/${produtoAtualizado.id}`,
-                {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ produtoProducao: produtoAtualizado }),
-                }
-            );
-
-            if (!res.ok) {
-                const errTxt = await res.text().catch(() => '');
-                console.error('Erro ao atualizar produto', errTxt);
-                return false;
-            }
-
-            await res.json().catch(() => ({}));
-
-            console.log('Produto atualizado com sucesso!');
-            return true;
-        } catch (err) {
-            console.error('Erro na requisição:', err);
-            return false;
-        } finally {
-            setSalvando(false); // mantém o modal aberto até aqui
         }
     };
 
@@ -236,16 +215,10 @@ const CardLote = ({ lote }) => {
         return `${dia}/${mes}/${ano} ${horas}:${minutos}`;
     };
 
-    const handleIniciarProducao = (idLote) => {
-        console.log('Iniciando produção do lote', idLote);
-        // Aqui você pode chamar sua API:
-        // fetch(`/lotes/iniciar/${idLote}`, { method: 'POST' })
-        //   .then(res => res.json())
-        //   .then(data => console.log(data))
-        //   .catch(err => console.error(err));
-    };
-
     const isIniciado = parseIniciado(loteIniciado);
+    const isFinalizado = parseIniciado(loteFinalizado);
+    const prevista = dataPrevistaSaida ? new Date(dataPrevistaSaida) : null;
+    const isAtrasado = !!(prevista && !isNaN(prevista) && Date.now() > prevista.getTime() && !isFinalizado);
 
     return (
         <Box sx={{ mt: 5, mb: 4, p: 3, borderRadius: 2, boxShadow: 2, backgroundColor: '#fff', minHeight: '200px' }}>
@@ -253,6 +226,7 @@ const CardLote = ({ lote }) => {
             {/* Header do Card */}
             <Box sx={{ mb: 3, color: '#5a5a5a' }}>
                 <InfoHeaderCard
+                    overdue={isAtrasado}
                     items={[
                         { label: 'Identificação', value: numeroIdentificador },
                         { label: 'CNPJ', value: fornecedor?.cnpj },
@@ -260,21 +234,37 @@ const CardLote = ({ lote }) => {
                         { label: 'Data de criação', value: dataEntrada ? new Date(dataEntrada).toLocaleString() : '-' },
                         { label: 'Valor Estimado', value: `R$ ${valorEstimado}` },
                         { label: 'Nome do Recebedor', value: nomeRecebedor },
-                        {
-                            label: 'Iniciado',
-                            value: isIniciado ?
-                                <RiTimerFill color='#2e8a18' /> :
-                                <FaHourglassStart color='#8f8d19' />,
-                        },
+                        { label: 'Início', value: isIniciado ? dataInicio : 'Não iniciado' },
+                        { label: 'Data de Saída', value: dataPrevistaSaida }
                     ]}
                 />
             </Box>
+
+            <Snackbar
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                open={snackbar.open}
+                autoHideDuration={4000}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
+                message={snackbar.message}
+            >
+                <Alert severity={snackbar.severity} sx={{ width: '100%' }} variant="filled">
+                    {snackbar.mensagem}
+                </Alert>
+            </Snackbar>
 
             <ModalInformacoesProduto
                 open={modalAberto}
                 onClose={handleFecharModal}
                 produto={detalhesProduto}
-                onSave={handleSalvarProduto}
+                onSave={async (produtoAtualizado) => {
+                    setSalvando(true);
+                    const ok = await onSalvarProduto?.(produtoAtualizado);
+                    setSalvando(false);
+                    if (ok) {
+                        setModalAberto(false);
+                        setDetalhesProduto(null);
+                    }
+                }}
             >
                 {salvando && (
                     <Box sx={{
@@ -295,16 +285,30 @@ const CardLote = ({ lote }) => {
                 open={modalAberto1}
                 onClose={handleFecharModal1}
                 lote={detalhesLote}
-                onSave={handleSalvarProduto}
-            />
-
-            <ConfirmInicioLoteModal
-                open={openModal}
-                onClose={() => setOpenModal(false)}
-                onConfirm={(id) => handleIniciarProducao(id)}
-                loteId={lote.id}
-                numeroIdentificador={lote.numeroIdentificador}
-            />
+                onSave={async (loteAtualizado) => {
+                    setSalvando(true);
+                    const ok = await onSalvarLote?.(loteAtualizado);
+                    setSalvando(false);
+                    if (ok) {
+                        setModalAberto1(false);
+                        setDetalhesLote(null);
+                    }
+                }}
+            >
+                {salvando && (
+                    <Box sx={{
+                        position: 'absolute',
+                        top: 0, left: 0, right: 0, bottom: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: 'rgba(255,255,255,0.6)',
+                        zIndex: 10
+                    }}>
+                        <MatxLoading />
+                    </Box>
+                )}
+            </ModalInformacoesLote>
 
             {/* Timeline visual */}
             <Box sx={{ position: 'relative', mt: 2, mb: 2 }}>
@@ -377,7 +381,7 @@ const CardLote = ({ lote }) => {
                 </Box>
             </Box>
 
-            <Collapse in={etapaExpandida === 'Lote'} timeout={400} unmountOnExit>
+            <Collapse in={etapaExpandida === '1 - Lote'} timeout={400} unmountOnExit>
                 <TableWrapper
                     // Contados de registros abaixo da tabela
                     total={produtos?.length || 0}
@@ -405,7 +409,7 @@ const CardLote = ({ lote }) => {
                 </TableWrapper>
             </Collapse>
 
-            <Collapse in={etapaExpandida === 'Produtos'} timeout={400} unmountOnExit>
+            <Collapse in={etapaExpandida === '2 - Produtos'} timeout={400} unmountOnExit>
                 <TableWrapper
                     // Contados de registros abaixo da tabela
                     total={produtos?.length || 0}
@@ -422,7 +426,7 @@ const CardLote = ({ lote }) => {
                 </TableWrapper>
             </Collapse>
 
-            <Collapse in={etapaExpandida === 'NF-e'} timeout={400} unmountOnExit>
+            <Collapse in={etapaExpandida === '3 - NF-e'} timeout={400} unmountOnExit>
                 <TableWrapper
                     // Contados de registros abaixo da tabela
                     total={produtos?.length || 0}
@@ -437,7 +441,7 @@ const CardLote = ({ lote }) => {
                 </TableWrapper>
             </Collapse>
 
-            <Collapse in={etapaExpandida === 'Integração'} timeout={400} unmountOnExit>
+            <Collapse in={etapaExpandida === '4 - Integração'} timeout={400} unmountOnExit>
                 <Box mt={2} p={2} bgcolor="#f5f5f5" borderRadius={2}>
                     <Typography variant="body2" color="text.secondary">
                         Sem integração no momento.
@@ -446,7 +450,7 @@ const CardLote = ({ lote }) => {
 
             </Collapse>
 
-            <Collapse in={etapaExpandida === 'Status'} timeout={400} unmountOnExit>
+            <Collapse in={etapaExpandida === '5 - Status'} timeout={400} unmountOnExit>
                 <Box mt={2} p={2} bgcolor="#f5f5f5" borderRadius={2}>
                     <Typography variant="body2" color="#494949">
                         <Typography variant="subtitle2">
@@ -455,21 +459,45 @@ const CardLote = ({ lote }) => {
                         </Typography>
                     </Typography>
 
-                    {/* Se o lote ainda não foi iniciado */}
                     {parseIniciado(loteIniciado) === false && (
                         <Box mt={2}>
                             <Button
                                 variant="contained"
                                 color="primary"
-                                onClick={() => handleIniciarProducao(lote.id)}
+                                onClick={() => setOpenModal(true)}
                             >
                                 Iniciar produção manual
                             </Button>
                         </Box>
                     )}
                 </Box>
-            </Collapse>
 
+                {/* Modal controlado por estado */}
+                <ConfirmInicioLoteModal
+                    open={openModal}
+                    onClose={() => setOpenModal(false)}
+                    onConfirm={async () => {
+                        await onIniciarLote?.(loteId);
+                        setOpenModal(false);
+                    }}
+                    loteId={loteId}
+                    numeroIdentificador={numeroIdentificador}
+                >
+                    {salvando && (
+                        <Box sx={{
+                            position: 'absolute',
+                            top: 0, left: 0, right: 0, bottom: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: 'rgba(255,255,255,0.6)',
+                            zIndex: 10
+                        }}>
+                            <MatxLoading />
+                        </Box>
+                    )}
+                </ConfirmInicioLoteModal>
+            </Collapse>
         </Box>
     );
 };

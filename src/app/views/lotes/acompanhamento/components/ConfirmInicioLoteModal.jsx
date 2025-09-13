@@ -6,7 +6,6 @@ import {
     Button,
     Typography,
 } from '@mui/material';
-
 /**
  * Modal de confirmação para iniciar um lote manualmente.
  *
@@ -25,6 +24,7 @@ export default function ConfirmInicioLoteModal({
     loteId,
     numeroIdentificador,
     titulo = 'Confirmar início manual do lote',
+    children
 }) {
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
@@ -51,6 +51,8 @@ export default function ConfirmInicioLoteModal({
                     Confirmar início
                 </Button>
             </DialogActions>
+
+            {children}
         </Dialog>
     );
 }

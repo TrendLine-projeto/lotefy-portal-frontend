@@ -21,6 +21,7 @@ const Container = styled("div")(({ theme }) => ({
 }));
 
 export default function SuprimentosTecnicosMain() {
+    const apiUrl = import.meta.env.VITE_API_URL;
     const [filters, setFilters] = useState({});
     const [dataSelecionado, setDataSelecionado] = useState(null);
     const [data, setData] = useState([]);
@@ -66,7 +67,7 @@ export default function SuprimentosTecnicosMain() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:3450/estoqueInsumos/estoque_insumo/buscar', {
+            const res = await fetch(`${apiUrl}/estoqueInsumos/estoque_insumo/buscar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -112,7 +113,7 @@ export default function SuprimentosTecnicosMain() {
 
     const handleSelect = async (id) => {
         try {
-            const res = await fetch(`http://localhost:3450/estoqueInsumos/estoque_insumo/${id}`);
+            const res = await fetch(`${apiUrl}/estoqueInsumos/estoque_insumo/${id}`);
             const result = await res.json();
             setDataSelecionado(result.insumoTecnico);
 
@@ -146,7 +147,7 @@ export default function SuprimentosTecnicosMain() {
 
     const handleCadastrar = async (formData) => {
         try {
-            const response = await fetch('http://localhost:3450/estoqueInsumos/estoque_insumo', {
+            const response = await fetch(`${apiUrl}/estoqueInsumos/estoque_insumo`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -189,7 +190,7 @@ export default function SuprimentosTecnicosMain() {
     const handleAtualizar = async (formData) => {
         try {
             const camposIgnorados = ['fornecedorNome', 'fornecedorAtivo', 'criadoEm', 'fornecedorNome', 'fornecedorAtivo'];
-            const response = await fetch(`http://localhost:3450/estoqueInsumos/estoque_insumo/editar/${formData.id}`, {
+            const response = await fetch(`${apiUrl}/estoqueInsumos/estoque_insumo/editar/${formData.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -233,7 +234,7 @@ export default function SuprimentosTecnicosMain() {
 
     const handleDeletar = async (id) => {
         try {
-            const response = await fetch(`http://localhost:3450/estoqueInsumos/estoque_insumo/deletar/${id}`, {
+            const response = await fetch(`${apiUrl}/estoqueInsumos/estoque_insumo/deletar/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json'
@@ -323,7 +324,7 @@ export default function SuprimentosTecnicosMain() {
     useEffect(() => {
         const fetchFornecedores = async () => {
             try {
-                const response = await fetch('http://localhost:3450/fornecedorSupri/fornecedores_suprimentos/lista_simples', {
+                const response = await fetch(`${apiUrl}/fornecedorSupri/fornecedores_suprimentos/lista_simples`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ cliente_id: 1 })
@@ -343,7 +344,7 @@ export default function SuprimentosTecnicosMain() {
 
         const fetchTiposProduto = async () => {
             try {
-                const response = await fetch('http://localhost:3450/tipoProdutos/tipos_produto?categoria=insumo');
+                const response = await fetch(`${apiUrl}/tipoProdutos/tipos_produto?categoria=insumo`);
                 const data = await response.json();
 
                 if (response.ok) {

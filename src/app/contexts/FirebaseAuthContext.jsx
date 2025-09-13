@@ -31,9 +31,10 @@ const AuthContext = createContext({ ...initialAuthState });
 
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialAuthState);
+  const apiUrl = import.meta.env.VITE_API_URL;
 
   const loginComApi = async (email, senha) => {
-    const response = await fetch("http://localhost:3450/usuarios/login", {
+    const response = await fetch(`${apiUrl}/usuarios/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: email, senha })
@@ -66,7 +67,7 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem("authToken");
 
     if (token) {
-      fetch("http://localhost:3450/usuarios/validartoken", {
+      fetch(`${apiUrl}/usuarios/validartoken`, {
         method: "GET",
         headers: { Authorization: `Bearer ${token}` }
       })

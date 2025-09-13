@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Breadcrumb } from "app/components";
 import { Snackbar, Alert } from "@mui/material";
 import { GoPackageDependencies } from "react-icons/go";
+import { buildLotePayload } from '../../../utils/lotePayload';
 import ExpandableFilterPanel from '../../../components/HeaderFilterContainer/index';
 import ConfirmDialog from '../../../components/Dialogs/ConfirmDialog';
 import Loading from '../../../components/MatxLoading';
@@ -21,6 +22,7 @@ const Container = styled("div")(({ theme }) => ({
 }));
 
 export default function LoteCompanhamentoMain() {
+    const apiUrl = import.meta.env.VITE_API_URL;
     const [filters, setFilters] = useState({});
     const [dadosSelecionado, setDadosSelecionado] = useState(null);
     const [data, setData] = useState([]);
@@ -74,7 +76,7 @@ export default function LoteCompanhamentoMain() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:3450/lotes/entrada_lotes/buscar', {
+            const res = await fetch(`${apiUrl}/lotes/entrada_lotes/buscar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -123,7 +125,7 @@ export default function LoteCompanhamentoMain() {
 
     const handleSelect = async (id) => {
         try {
-            const res = await fetch(`http://localhost:3450/lotes/entrada_lotes/${id}`);
+            const res = await fetch(`${apiUrl}/lotes/entrada_lotes/${id}`);
             const result = await res.json();
             setDadosSelecionado(result.lote);
 
@@ -152,6 +154,164 @@ export default function LoteCompanhamentoMain() {
                 severity: 'error',
                 mensagem: 'Erro ao selecionar o Fornecedor de produto!'
             });
+        }
+    };
+
+    const iniciarLote = async (idLote) => {
+        try {
+            const res = await fetch(`${apiUrl}/lotes/entrada_lotes/iniciarLote`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ idEntrada_lotes: idLote }),
+            });
+
+            if (!res.ok) {
+                setSnackbar({
+                    open: true,
+                    message: 'Erro ao iniciar o lote!',
+                    severity: 'error',
+                    mensagem: 'Erro ao iniciar o lote!',
+                });
+                return false;
+            }
+
+            await res.json().catch(() => ({}));
+
+            setSnackbar({
+                open: true,
+                message: 'Registro atualizado com sucesso!',
+                severity: 'success',
+                mensagem: 'Registro atualizado com sucesso!',
+            });
+
+            await fetchData();
+
+            if (dadosSelecionado?.id === idLote) {
+                const r = await fetch(`${apiUrl}/lotes/entrada_lotes/${idLote}`);
+                const j = await r.json();
+                setDadosSelecionado(j.lote);
+            }
+
+            return true;
+        } catch (err) {
+            setSnackbar({
+                open: true,
+                message: 'Erro ao iniciar o lote!',
+                severity: 'error',
+                mensagem: 'Erro ao iniciar o lote!',
+            });
+            return false;
+        }
+    };
+
+    const salvarLote = async (loteAtualizado) => {
+        try {
+            const payload = buildLotePayload(loteAtualizado);
+
+            const res = await fetch(
+                `${apiUrl}/lotes/entrada_lotes/alterar/${loteAtualizado.id}`,
+                {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload), // << só o necessário
+                }
+            );
+
+            if (!res.ok) {
+                const errTxt = await res.text().catch(() => '');
+                console.error('Erro ao atualizar lote', errTxt);
+                setSnackbar({
+                    open: true,
+                    message: 'Erro ao atualizar lote!',
+                    severity: 'error',
+                    mensagem: 'Erro ao atualizar lote!',
+                });
+                return false;
+            }
+
+            await res.json().catch(() => ({}));
+
+            setSnackbar({
+                open: true,
+                message: 'Lote atualizado com sucesso!',
+                severity: 'success',
+                mensagem: 'Lote atualizado com sucesso!',
+            });
+
+            await fetchData();
+
+            if (dadosSelecionado?.id === loteAtualizado.id) {
+                const r = await fetch(`${apiUrl}/lotes/entrada_lotes/${loteAtualizado.id}`);
+                const j = await r.json();
+                setDadosSelecionado(j.lote);
+            }
+
+            return true;
+        } catch (err) {
+            console.error('Erro na requisição:', err);
+            setSnackbar({
+                open: true,
+                message: 'Erro ao atualizar lote!',
+                severity: 'error',
+                mensagem: 'Erro ao atualizar lote!',
+            });
+            return false;
+        }
+    };
+
+    const salvarProduto = async (produtoAtualizado) => {
+        try {
+            const res = await fetch(
+                `${apiUrl}/produtorProducao/produtos_producao/alterar/${produtoAtualizado.id}`,
+                {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ produtoProducao: produtoAtualizado }),
+                }
+            );
+
+            if (!res.ok) {
+                const errTxt = await res.text().catch(() => '');
+                console.error('Erro ao atualizar produto', errTxt);
+                setSnackbar({
+                    open: true,
+                    message: 'Erro ao atualizar produto!',
+                    severity: 'error',
+                    mensagem: 'Erro ao atualizar produto!',
+                });
+                return false;
+            }
+
+            await res.json().catch(() => ({}));
+
+            setSnackbar({
+                open: true,
+                message: 'Produto atualizado com sucesso!',
+                severity: 'success',
+                mensagem: 'Produto atualizado com sucesso!',
+            });
+
+            // refaz a lista geral
+            await fetchData();
+
+            // se um lote está selecionado, atualiza o detalhe dele também
+            const loteIdDoProduto = produtoAtualizado?.idEntrada_lotes;
+            if (dadosSelecionado?.id && loteIdDoProduto === dadosSelecionado.id) {
+                const r = await fetch(`${apiUrl}/lotes/entrada_lotes/${dadosSelecionado.id}`);
+                const j = await r.json();
+                setDadosSelecionado(j.lote);
+            }
+
+            return true;
+        } catch (err) {
+            console.error('Erro na requisição:', err);
+            setSnackbar({
+                open: true,
+                message: 'Erro ao atualizar produto!',
+                severity: 'error',
+                mensagem: 'Erro ao atualizar produto!',
+            });
+            return false;
         }
     };
 
@@ -253,9 +413,9 @@ export default function LoteCompanhamentoMain() {
             </Snackbar>
 
             {dadosSelecionado ? (
-                <CardLote lote={dadosSelecionado} />
+                <CardLote lote={dadosSelecionado} onIniciarLote={iniciarLote} onSalvarProduto={salvarProduto} onSalvarLote={salvarLote} />
             ) : (
-                data.map((lote) => <CardLote key={lote.id} lote={lote} />)
+                data.map((lote) => <CardLote key={lote.id} lote={lote} onIniciarLote={iniciarLote} onSalvarProduto={salvarProduto} onSalvarLote={salvarLote} />)
             )}
 
             <ConfirmDialog

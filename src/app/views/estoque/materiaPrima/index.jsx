@@ -22,6 +22,7 @@ const Container = styled("div")(({ theme }) => ({
 }));
 
 export default function MateriaPrimaMain() {
+    const apiUrl = import.meta.env.VITE_API_URL;
     const [filters, setFilters] = useState({});
     const [dataSelecionado, setDataSelecionado] = useState(null);
     const [data, setData] = useState([]);
@@ -67,7 +68,7 @@ export default function MateriaPrimaMain() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:3450/estoque/estoque_materiaprima/buscar', {
+            const res = await fetch(`${apiUrl}/estoque/estoque_materiaprima/buscar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -113,7 +114,7 @@ export default function MateriaPrimaMain() {
 
     const handleSelect = async (id) => {
         try {
-            const res = await fetch(`http://localhost:3450/estoque/estoque_materiaprima/${id}`);
+            const res = await fetch(`${apiUrl}/estoque/estoque_materiaprima/${id}`);
             const result = await res.json();
             setDataSelecionado(result.materiaPrima);
 
@@ -147,7 +148,7 @@ export default function MateriaPrimaMain() {
 
     const handleCadastrar = async (formData) => {
         try {
-            const response = await fetch('http://localhost:3450/estoque/estoque_materiaprima', {
+            const response = await fetch(`${apiUrl}/estoque/estoque_materiaprima`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -190,7 +191,7 @@ export default function MateriaPrimaMain() {
     const handleAtualizar = async (formData) => {
         try {
             const camposIgnorados = ['fornecedorNome', 'fornecedorAtivo', 'criadoEm', 'fornecedorNome', 'fornecedorAtivo'];
-            const response = await fetch(`http://localhost:3450/estoque/estoque_materiaprima/editar/${formData.id}`, {
+            const response = await fetch(`${apiUrl}/estoque/estoque_materiaprima/editar/${formData.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -235,7 +236,7 @@ export default function MateriaPrimaMain() {
 
     const handleDeletar = async (id) => {
         try {
-            const response = await fetch(`http://localhost:3450/estoque/estoque_materiaprima/deletar/${id}`, {
+            const response = await fetch(`${apiUrl}/estoque/estoque_materiaprima/deletar/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json'
@@ -325,7 +326,7 @@ export default function MateriaPrimaMain() {
     useEffect(() => {
         const fetchFornecedores = async () => {
             try {
-                const response = await fetch('http://localhost:3450/fornecedorSupri/fornecedores_suprimentos/lista_simples', {
+                const response = await fetch(`${apiUrl}/fornecedorSupri/fornecedores_suprimentos/lista_simples`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ cliente_id: 1 })
@@ -345,7 +346,7 @@ export default function MateriaPrimaMain() {
 
         const fetchTiposProduto = async () => {
             try {
-                const response = await fetch('http://localhost:3450/tipoProdutos/tipos_produto?categoria=materia_prima');
+                const response = await fetch(`${apiUrl}/tipoProdutos/tipos_produto?categoria=materia_prima`);
                 const data = await response.json();
 
                 if (response.ok) {
