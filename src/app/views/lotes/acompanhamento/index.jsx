@@ -105,7 +105,7 @@ export default function LoteCompanhamentoMain() {
             } else {
                 setData(result.lotes.map(f => ({
                     ...f,
-                    etapas: ['Lote', 'Produtos', 'NF-e', 'Integração', 'Status', 'Finalizado'], // ADICIONADO
+                    etapas: ['Lote', 'Produtos', 'NF-e', 'Status', 'Finalizado'], // ADICIONADO
                     dataEntrada: formatarDataHora(f.dataEntrada),
                     dataPrevistaSaida: formatarDataHora(f.dataPrevistaSaida),
                     loteIniciado: f.loteIniciado === 1 ? 'Sim' : 'Não'

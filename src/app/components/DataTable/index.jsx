@@ -7,6 +7,7 @@ import {
 const DataTable = ({ columns = [], rows = [], loading = false, pagination, onPageChange, onRowsPerPageChange }) => {
     const safeColumns = Array.isArray(columns) ? columns : [];
     const safeRows = Array.isArray(rows) ? rows : [];
+    const cellMaxWidth = 180;
 
     return (
         <Box>
@@ -48,21 +49,43 @@ const DataTable = ({ columns = [], rows = [], loading = false, pagination, onPag
                                         '&:hover': { backgroundColor: '#f9f9f9' }
                                     }}
                                 >
-                                    {safeColumns.map((col, index) => (
-                                        <TableCell
-                                            key={col.field}
-                                            sx={{
-                                                borderRight: index < safeColumns.length - 1 ? '1px solid #f0f0f0' : 'none',
-                                                px: 2,
-                                                py: 1.5
-                                            }}
-                                        >
-                                            {col.renderCell
-                                                ? col.renderCell(row)
-                                                : String(row[col.field] ?? '')
-                                            }
-                                        </TableCell>
-                                    ))}
+                                    {safeColumns.map((col, index) => {
+                                        const rawValue = col.renderCell ? col.renderCell(row) : (row[col.field] ?? '');
+                                        const isPrimitive = typeof rawValue === 'string' || typeof rawValue === 'number';
+                                        const displayValue = col.renderCell ? rawValue : String(rawValue);
+                                        const maxWidth = col.maxWidth || cellMaxWidth;
+                                        return (
+                                            <TableCell
+                                                key={col.field}
+                                                title={isPrimitive ? String(rawValue) : undefined}
+                                                sx={{
+                                                    borderRight: index < safeColumns.length - 1 ? '1px solid #f0f0f0' : 'none',
+                                                    px: 2,
+                                                    py: 1.5,
+                                                    maxWidth,
+                                                    whiteSpace: 'nowrap',
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis'
+                                                }}
+                                            >
+                                                {isPrimitive ? (
+                                                    <span
+                                                        title={String(rawValue)}
+                                                        style={{
+                                                            display: 'inline-block',
+                                                            maxWidth: '100%',
+                                                            overflow: 'hidden',
+                                                            textOverflow: 'ellipsis',
+                                                            verticalAlign: 'middle',
+                                                            whiteSpace: 'nowrap'
+                                                        }}
+                                                    >
+                                                        {displayValue}
+                                                    </span>
+                                                ) : displayValue}
+                                            </TableCell>
+                                        );
+                                    })}
                                 </TableRow>
                             ))}
                         </TableBody>
