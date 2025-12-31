@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Typography, Grid, Divider, Tooltip, Dialog, DialogTitle, DialogContent, CircularProgress, DialogActions, Button } from '@mui/material';
-import { FaPen, FaBoxOpen, FaFileAlt, FaLink, FaPowerOff, FaFlagCheckered, FaHourglassStart } from 'react-icons/fa';
+import { FaPen, FaBoxOpen, FaFileAlt, FaPowerOff, FaFlagCheckered } from 'react-icons/fa';
 import { RiTimerFill } from "react-icons/ri"
 import { IconsCardDefault } from '../../../../utils/constant';
 import { buildColumnsWithEllipsis } from '../../../../utils/buildColumns';
@@ -13,24 +13,22 @@ import TableWrapper from '../../../../components/DataTable/TableWrapper';
 import ModalInformacoesProduto from '../components/ModalInformacoesProduto';
 import ConfirmInicioLoteModal from '../components/ConfirmInicioLoteModal';
 import ModalInformacoesLote from '../components/ModalInformacoesLote';
-import imgIcon from '../../../../assets/img/images.png'
 import MatxLoading from "../../../../components/MatxLoading";
 
 const icones = {
     '1 - Lote': <FaPen size={IconsCardDefault} />,
     '2 - Produtos': <FaBoxOpen size={IconsCardDefault} />,
     '3 - NF-e': <FaFileAlt size={IconsCardDefault} />,
-    '4 - Integração': <FaLink size={IconsCardDefault} />,
-    '5 - Status': <FaPowerOff size={IconsCardDefault} />,
-    '6 - Finalizado': <FaFlagCheckered size={IconsCardDefault} />
+    '4 - Status': <FaPowerOff size={IconsCardDefault} />,
+    '5 - Finalizado': <FaFlagCheckered size={IconsCardDefault} />
 };
 
 const getEtapasConcluidasFromLote = (lote) => {
     if (!lote) return 0;
 
-    if (lote.loteFinalizado === "Sim" || lote.loteFinalizado === 1) return 6;
-    if (lote.loteIniciado === "Não" || lote.loteIniciado === 0) return 4;
-    return 5;
+    if (lote.loteFinalizado === "Sim" || lote.loteFinalizado === 1) return 5;
+    if (lote.loteIniciado === "Não" || lote.loteIniciado === 0) return 3;
+    return 4;
 };
 
 const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
@@ -42,7 +40,7 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
     const [detalhesLote, setDetalhesLote] = useState(null);
     const [salvando, setSalvando] = useState(false);
     const [openModal, setOpenModal] = useState(false);
-    const etapasDefault = ['1 - Lote', '2 - Produtos', '3 - NF-e', '4 - Integração', '5 - Status', '6 - Finalizado'];
+    const etapasDefault = ['1 - Lote', '2 - Produtos', '3 - NF-e', '4 - Status', '5 - Finalizado'];
     const {
         id: loteId,
         numeroIdentificador,
@@ -114,21 +112,6 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
         { field: 'quantidadeProduto', headerName: 'Qtd' },
         { field: 'valorPorPeca', headerName: 'Valor Unitário' },
         { field: 'someValorTotalProduto', headerName: 'Valor Total' },
-        {
-            field: 'blingIdentify',
-            headerName: 'Integrado ERP',
-            renderCell: (row) => {
-                const hasBling = !!row?.blingIdentify;
-                return (
-                    <img
-                        src={imgIcon}
-                        alt={hasBling ? 'Integrado' : 'Não integrado'}
-                        style={{ opacity: hasBling ? 1 : 0.3, width: '27px', height: '27px', }}
-                        title={hasBling ? `ID: ${row.blingIdentify}` : 'Não integrado'}
-                    />
-                );
-            },
-        },
         {
             field: 'detalhes',
             headerName: 'Detalhes',
@@ -481,16 +464,7 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
                 </TableWrapper>
             </Collapse>
 
-            <Collapse in={etapaExpandida === '4 - Integração'} timeout={400} unmountOnExit>
-                <Box mt={2} p={2} bgcolor="#f5f5f5" borderRadius={2}>
-                    <Typography variant="body2" color="text.secondary">
-                        Sem integração no momento.
-                    </Typography>
-                </Box>
-
-            </Collapse>
-
-            <Collapse in={etapaExpandida === '5 - Status'} timeout={400} unmountOnExit>
+            <Collapse in={etapaExpandida === '4 - Status'} timeout={400} unmountOnExit>
                 <Box mt={2} p={2} bgcolor="#f5f5f5" borderRadius={2}>
                     <Typography variant="body2" color="#494949">
                         <Typography variant="subtitle2">

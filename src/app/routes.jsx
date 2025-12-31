@@ -18,6 +18,11 @@ const SuprimentosTecnicosMain = Loadable(lazy(() => import("app/views/estoque/in
 const ConferenciaMain = Loadable(lazy(() => import("app/views/estoque/conferencia/index")));
 const LotesEntradas = Loadable(lazy(() => import("app/views/lotes/entradas/index")));
 const LoteCompanhamentoMain = Loadable(lazy(() => import("app/views/lotes/acompanhamento/index")));
+const FavoritosMain = Loadable(lazy(() => import("app/views/favoritos/lista/index")));
+const MaquinasMain = Loadable(lazy(() => import("app/views/ativos/maquinas/index")));
+const PlanoManutencaoMain = Loadable(lazy(() => import("app/views/ativos/planoManutencao/index")));
+const OrdemServicoMain = Loadable(lazy(() => import("app/views/ativos/ordemDeServico")));
+
 
 const routes = [
   { path: "/", element: <Navigate to="dashboard/default" /> },
@@ -43,7 +48,13 @@ const routes = [
       { path: "/lotes/lotesentradas", element: <LotesEntradas />, auth: authRoles.editor },
       { path: "/lotes/lotessaidas", element: <ConferenciaMain />, auth: authRoles.editor },
       { path: "/lotes/lotesacompanhamento", element: <LoteCompanhamentoMain />, auth: authRoles.editor },
-      { path: "/lotes/loteemproducao", element: <LoteCompanhamentoMain />, auth: authRoles.editor }
+      { path: "/lotes/loteemproducao", element: <LoteCompanhamentoMain />, auth: authRoles.editor },
+
+      { path: "/favoritos", element: <FavoritosMain />, auth: authRoles.editor },
+
+      { path: "/ativos/maquinas", element: <MaquinasMain />, auth: authRoles.editor },
+      { path: "/ativos/planomanutencao", element: <PlanoManutencaoMain />, auth: authRoles.editor },
+      { path: "/ativos/os", element: <OrdemServicoMain />, auth: authRoles.editor }
     ]
   },
 

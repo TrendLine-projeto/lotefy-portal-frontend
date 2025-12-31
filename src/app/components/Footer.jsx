@@ -48,7 +48,7 @@ export default function Footer() {
         <AppFooter>
           <FooterContent>
             <Paragraph m={0}>
-              Trendline V1.0.0
+              Lotefy V1.0.0
             </Paragraph>
           </FooterContent>
         </AppFooter>

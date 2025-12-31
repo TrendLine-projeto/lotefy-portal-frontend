@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import { NavLink } from "react-router-dom";
 import { Paragraph, Span } from "../Typography";
 import { GoInbox } from "react-icons/go";
+import { BsPaperclip } from "react-icons/bs";
 import Box from "@mui/material/Box";
 import ButtonBase from "@mui/material/ButtonBase";
 import useSettings from "app/hooks/useSettings";
@@ -18,8 +19,9 @@ import { BsPeopleFill } from "react-icons/bs";
 const iconesDisponiveis = {
   MdDashboard: MdDashboard,
   FaBoxOpen: FaBoxOpen,
-  BsPeopleFill : BsPeopleFill,
-  GoInbox: GoInbox 
+  BsPeopleFill: BsPeopleFill,
+  GoInbox: GoInbox,
+  BsPaperclip: BsPaperclip
 };
 
 const getDynamicIcon = (iconName) => {

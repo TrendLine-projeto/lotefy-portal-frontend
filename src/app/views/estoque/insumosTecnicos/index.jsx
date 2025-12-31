@@ -10,6 +10,7 @@ import Loading from '../../../components/MatxLoading';
 import DataTable from '../../../components/DataTable';
 import styled from "@mui/material/styles/styled";
 import Box from "@mui/material/Box";
+import { getIdClienteFromToken } from "../../../utils/authToken";
 
 const Container = styled("div")(({ theme }) => ({
     margin: "30px",
@@ -22,6 +23,7 @@ const Container = styled("div")(({ theme }) => ({
 
 export default function SuprimentosTecnicosMain() {
     const apiUrl = import.meta.env.VITE_API_URL;
+    const [idCliente] = useState(() => getIdClienteFromToken());
     const [filters, setFilters] = useState({});
     const [dataSelecionado, setDataSelecionado] = useState(null);
     const [data, setData] = useState([]);
@@ -72,7 +74,7 @@ export default function SuprimentosTecnicosMain() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...filters,
-                    idCliente: 1,
+                    idCliente,
                     pagina: pagination.page,
                     quantidadePorPagina: pagination.perPage
                 })
@@ -154,7 +156,7 @@ export default function SuprimentosTecnicosMain() {
                 },
                 body: JSON.stringify({
                     ...formData,
-                    idCliente: formData.idCliente || 1
+                    idCliente: idCliente || formData.idCliente
                 })
             });
 
@@ -199,7 +201,7 @@ export default function SuprimentosTecnicosMain() {
                     ...Object.fromEntries(
                         Object.entries(formData).filter(([key]) => !camposIgnorados.includes(key))
                     ),
-                    idCliente: formData.idCliente || 1
+                    idCliente: idCliente || formData.idCliente || 1
                 })
             });
 

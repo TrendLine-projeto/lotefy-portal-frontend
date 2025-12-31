@@ -10,6 +10,7 @@ import Loading from '../../../components/MatxLoading';
 import DataTable from '../../../components/DataTable';
 import styled from "@mui/material/styles/styled";
 import Box from "@mui/material/Box";
+import { getIdClienteFromToken } from "../../../utils/authToken";
 
 const Container = styled("div")(({ theme }) => ({
     margin: "30px",
@@ -22,6 +23,7 @@ const Container = styled("div")(({ theme }) => ({
 
 export default function SuprimentosMain() {
     const apiUrl = import.meta.env.VITE_API_URL;
+    const [idCliente] = useState(() => getIdClienteFromToken());
     const [filters, setFilters] = useState({});
     const [fornecedorSelecionado, setFornecedorSelecionado] = useState(null);
     const [data, setData] = useState([]);
@@ -70,7 +72,7 @@ export default function SuprimentosMain() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...filters,
-                    cliente_id: 1,
+                    cliente_id: idCliente,
                     pagina: pagination.page,
                     quantidadePorPagina: pagination.perPage
                 })
@@ -153,7 +155,7 @@ export default function SuprimentosMain() {
                 body: JSON.stringify({
                     ...formData,
                     ativo: formData.ativo ? true : false,
-                    cliente_id: formData.cliente_id || 1
+                    cliente_id: idCliente || formData.cliente_id
                 })
             });
 
@@ -196,7 +198,7 @@ export default function SuprimentosMain() {
                 body: JSON.stringify({
                     ...formData,
                     ativo: formData.ativo ? true : false,
-                    cliente_id: formData.cliente_id || 1
+                    cliente_id: idCliente || formData.cliente_id
                 })
             });
 

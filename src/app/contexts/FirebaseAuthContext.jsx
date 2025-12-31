@@ -45,6 +45,8 @@ export const AuthProvider = ({ children }) => {
     const data = await response.json();
 
     localStorage.setItem("authToken", data.token);
+    localStorage.setItem("user", String(data.usuario.id));
+    localStorage.setItem("favoritos", JSON.stringify(data.usuario.favoritos || []));
 
     dispatch({
       type: "AUTH_STATE_CHANGED",
@@ -60,6 +62,8 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
+    localStorage.removeItem("favoritos");
     dispatch({ type: "LOGOUT" });
   };
 
@@ -76,17 +80,27 @@ export const AuthProvider = ({ children }) => {
           return res.json();
         })
         .then((data) => {
+          const storedFavoritos = JSON.parse(localStorage.getItem("favoritos") || "[]");
+          const userWithFavoritos = {
+            ...data.usuario,
+            favoritos: data.usuario.favoritos ?? storedFavoritos
+          };
+          localStorage.setItem("user", String(userWithFavoritos.id));
+          localStorage.setItem("favoritos", JSON.stringify(userWithFavoritos.favoritos || []));
+
           dispatch({
             type: "AUTH_STATE_CHANGED",
             payload: {
               isAuthenticated: true,
-              user: data.usuario,
+              user: userWithFavoritos,
               token
             }
           });
         })
         .catch(() => {
           localStorage.removeItem("authToken");
+          localStorage.removeItem("user");
+          localStorage.removeItem("favoritos");
           dispatch({
             type: "AUTH_STATE_CHANGED",
             payload: {

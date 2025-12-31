@@ -144,6 +144,9 @@ export const EstoqueInsumosTecnicos = ({ materiais, onClearAll, modoEdicao, onEd
         }
     ];
 
+    const isUltimaAba = abaSelecionada === abas.length - 1;
+    const irParaProximaAba = () => setAbaSelecionada((prev) => Math.min(prev + 1, abas.length - 1));
+
     return (
         <Paper elevation={0} className="p-6 mt-6" sx={{ marginTop: '25px', padding: 3 }}>
             <div style={{ marginBottom: 20 }}>
@@ -489,30 +492,56 @@ export const EstoqueInsumosTecnicos = ({ materiais, onClearAll, modoEdicao, onEd
                             Limpar
                         </Button>
 
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={() => onRequestSubmit && onRequestSubmit(formData)}
-                            sx={{
-                                minWidth: 120,
-                                padding: '6px 12px',
-                                fontSize: '0.85rem',
-                                borderRadius: '8px',
-                                boxShadow: 'none',
-                                textTransform: 'none',
-                                fontWeight: 500,
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 1,
-                                '&:hover': {
+                        {isUltimaAba ? (
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={() => onRequestSubmit && onRequestSubmit(formData)}
+                                sx={{
+                                    minWidth: 120,
+                                    padding: '6px 12px',
+                                    fontSize: '0.85rem',
+                                    borderRadius: '8px',
                                     boxShadow: 'none',
-                                    opacity: 0.9
-                                }
-                            }}
-                        >
-                            <FaSave size={16} />
-                            Salvar
-                        </Button>
+                                    textTransform: 'none',
+                                    fontWeight: 500,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 1,
+                                    '&:hover': {
+                                        boxShadow: 'none',
+                                        opacity: 0.9
+                                    }
+                                }}
+                            >
+                                <FaSave size={16} />
+                                Salvar
+                            </Button>
+                        ) : (
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={irParaProximaAba}
+                                sx={{
+                                    minWidth: 120,
+                                    padding: '6px 12px',
+                                    fontSize: '0.85rem',
+                                    borderRadius: '8px',
+                                    boxShadow: 'none',
+                                    textTransform: 'none',
+                                    fontWeight: 500,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 1,
+                                    '&:hover': {
+                                        boxShadow: 'none',
+                                        opacity: 0.9
+                                    }
+                                }}
+                            >
+                                Proximo
+                            </Button>
+                        )}
                     </Box>
                 ) : (
                     <Button
