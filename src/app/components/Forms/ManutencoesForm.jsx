@@ -55,8 +55,8 @@ export default function ManutencoesForm({
             label: 'Datas',
             icon: <FaCalendarAlt size={16} style={{ marginRight: 6 }} />,
             campos: [
-                { name: 'data_execucao', label: 'Data de execucao', type: 'date' },
-                { name: 'proxima_prevista', label: 'Proxima prevista', type: 'date' }
+                { name: 'data_execucao', label: 'Data de execucao', type: 'datetime-local' },
+                { name: 'proxima_prevista', label: 'Proxima prevista', type: 'datetime-local' }
             ]
         },
         {
@@ -74,6 +74,8 @@ export default function ManutencoesForm({
             ]
         }
     ];
+    const isUltimaAba = abaSelecionada === abas.length - 1;
+    const irParaProximaAba = () => setAbaSelecionada((prev) => Math.min(prev + 1, abas.length - 1));
 
     const handleInput = (event) => {
         const { name, value } = event.target;
@@ -152,7 +154,11 @@ export default function ManutencoesForm({
                 type={campo.type || 'text'}
                 multiline={campo.multiline}
                 minRows={campo.multiline ? 3 : undefined}
-                InputLabelProps={campo.type === 'date' ? { shrink: true } : undefined}
+                InputLabelProps={
+                    campo.type && campo.type.startsWith('date')
+                        ? { shrink: true }
+                        : undefined
+                }
             />
         );
     };
@@ -245,13 +251,24 @@ export default function ManutencoesForm({
                 <Button variant="text" onClick={onClearAll}>
                     Limpar
                 </Button>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => onRequestSubmit(valores)}
-                >
-                    {modoEdicao ? 'Salvar' : 'Cadastrar'}
-                </Button>
+                {!isUltimaAba && (
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={irParaProximaAba}
+                    >
+                        Proximo
+                    </Button>
+                )}
+                {isUltimaAba && (
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => onRequestSubmit(valores)}
+                    >
+                        {modoEdicao ? 'Salvar' : 'Cadastrar'}
+                    </Button>
+                )}
             </Box>
         </Paper>
     );

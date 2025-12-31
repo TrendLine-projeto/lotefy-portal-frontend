@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
@@ -75,14 +75,41 @@ const Heading = styled("span")(({ theme }) => ({
 export default function NotificationBar({ container }) {
   const { settings } = useSettings();
   const [panelOpen, setPanelOpen] = useState(false);
-  const { deleteNotification, clearNotifications, notifications } = useNotification();
+  const {
+    deleteNotification,
+    clearNotifications,
+    notifications,
+    getNotifications,
+    total,
+    quantidadePorPagina,
+    loading
+  } = useNotification();
+  const [page, setPage] = useState(1);
+  const perPage = quantidadePorPagina || 10;
 
   const handleDrawerToggle = () => setPanelOpen(!panelOpen);
+
+  useEffect(() => {
+    if (panelOpen) {
+      setPage(1);
+      getNotifications(1, perPage);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [panelOpen]);
+
+  const handleLoadMore = () => {
+    const next = page + 1;
+    setPage(next);
+    getNotifications(next, perPage, true);
+  };
+
+  const badgeCount = total || notifications?.length || 0;
+  const hasMore = (notifications?.length || 0) < (total || 0);
 
   return (
     <Fragment>
       <IconButton onClick={handleDrawerToggle}>
-        <Badge color="secondary">
+        <Badge color="secondary" badgeContent={badgeCount} max={99}>
           <Notifications sx={{ color: "text.primary" }} />
         </Badge>
       </IconButton>
@@ -99,10 +126,56 @@ export default function NotificationBar({ container }) {
           <Box sx={{ width: sideNavWidth }}>
             <Notification>
               <Notifications color="primary" />
-              <h5>Notificações</h5>
+              <h5>Notificacoes</h5>
             </Notification>
 
-            {/* MAP DE NOFICICAÇÕES DEVEM VIR AQUI */}
+            <Box p={2} pt={0} sx={{ maxHeight: "calc(100vh - 120px)", overflowY: "auto" }}>
+              {loading && <Paragraph sx={{ px: 1, py: 1 }}>Carregando...</Paragraph>}
+
+              {!loading && (!notifications || notifications.length === 0) && (
+                <Paragraph sx={{ px: 1, py: 1 }} color="text.secondary">
+                  Nenhuma notificacao encontrada.
+                </Paragraph>
+              )}
+
+              {notifications?.map((item) => (
+                <NotificationCard key={item.id}>
+                  <Card elevation={6} sx={{ mb: 2 }}>
+                    <CardLeftContent>
+                      <Box display="flex" alignItems="center">
+                        <Icon className="icon" color="primary">
+                          notifications
+                        </Icon>
+                        <Heading>{item.tipo || "Notificacao"}</Heading>
+                      </Box>
+
+                      <Small className="messageTime">
+                        {item.dataCriacao ? getTimeDifference(new Date(item.dataCriacao)) : ""}
+                      </Small>
+                    </CardLeftContent>
+
+                    <Box p={2} pr={6}>
+                      <Paragraph sx={{ mb: 1, fontWeight: 500 }}>{item.descricao}</Paragraph>
+                    </Box>
+
+                    <DeleteButton
+                      className="deleteButton"
+                      onClick={() => deleteNotification(item.id)}
+                      size="small"
+                      aria-label="Remover notificacao"
+                    >
+                      <Clear fontSize="small" />
+                    </DeleteButton>
+                  </Card>
+                </NotificationCard>
+              ))}
+
+              {hasMore && (
+                <Button fullWidth onClick={handleLoadMore} disabled={loading}>
+                  Carregar mais
+                </Button>
+              )}
+            </Box>
 
             {!!notifications?.length && (
               <Button fullWidth onClick={clearNotifications}>

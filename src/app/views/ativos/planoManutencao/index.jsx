@@ -34,25 +34,28 @@ const initialFormData = {
     gerar_ordem_servico_auto: true
 };
 
-const dateFields = ['data_execucao', 'proxima_prevista'];
+const dateTimeFields = ['data_execucao', 'proxima_prevista'];
 
-const normalizeDateValue = (value) => {
+const formatDateTimeLocal = (value) => {
     if (!value) return value;
     if (typeof value === 'string') {
-        if (value.includes('T')) return value.split('T')[0];
+        if (value.includes('T')) return value.slice(0, 16);
         return value;
     }
     if (value instanceof Date && !isNaN(value.getTime())) {
-        return value.toISOString().slice(0, 10);
+        const offsetMs = value.getTimezoneOffset() * 60000;
+        return new Date(value.getTime() - offsetMs).toISOString().slice(0, 16);
     }
     return value;
 };
 
+const nowDateTimeLocal = () => formatDateTimeLocal(new Date());
+
 const normalizeDates = (obj) => {
     if (!obj) return obj;
     const clone = { ...obj };
-    dateFields.forEach((campo) => {
-        clone[campo] = normalizeDateValue(obj[campo]);
+    dateTimeFields.forEach((campo) => {
+        clone[campo] = formatDateTimeLocal(obj[campo]);
     });
     return clone;
 };
@@ -60,7 +63,7 @@ const normalizeDates = (obj) => {
 const cleanPayload = (obj) => {
     const base = Object.entries(obj).reduce((acc, [key, value]) => {
         if (value !== '' && value !== null && value !== undefined) {
-            acc[key] = dateFields.includes(key) ? normalizeDateValue(value) : value;
+            acc[key] = dateTimeFields.includes(key) ? formatDateTimeLocal(value) : value;
         }
         return acc;
     }, {});
@@ -69,6 +72,12 @@ const cleanPayload = (obj) => {
 
 const formatDateTimeBR = (value) => {
     if (!value) return '';
+    if (typeof value === 'string' && value.includes('T') && value.length >= 16) {
+        const [d, t] = value.split('T');
+        const [y, m, day] = d.split('-');
+        const [hh, mm] = t.split(':');
+        if (y && m && day && hh && mm) return `${day}/${m}/${y} ${hh}:${mm}`;
+    }
     const d = new Date(value);
     if (isNaN(d.getTime())) return value;
     const dd = String(d.getDate()).padStart(2, '0');

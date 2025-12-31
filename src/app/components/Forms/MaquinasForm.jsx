@@ -79,6 +79,8 @@ export default function MaquinasForm({
             ]
         }
     ];
+    const isUltimaAba = abaSelecionada === abas.length - 1;
+    const irParaProximaAba = () => setAbaSelecionada((prev) => Math.min(prev + 1, abas.length - 1));
 
     const handleInput = (event) => {
         const { name, value } = event.target;
@@ -202,13 +204,24 @@ export default function MaquinasForm({
                 <Button variant="text" onClick={onClearAll}>
                     Limpar
                 </Button>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => onRequestSubmit(valores)}
-                >
-                    {modoEdicao ? 'Salvar' : 'Cadastrar'}
-                </Button>
+                {!isUltimaAba && (
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={irParaProximaAba}
+                    >
+                        Proximo
+                    </Button>
+                )}
+                {isUltimaAba && (
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => onRequestSubmit(valores)}
+                    >
+                        {modoEdicao ? 'Salvar' : 'Cadastrar'}
+                    </Button>
+                )}
             </Box>
         </Paper>
     );
