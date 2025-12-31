@@ -215,10 +215,50 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
         return `${dia}/${mes}/${ano} ${horas}:${minutos}`;
     };
 
-    const isIniciado = parseIniciado(loteIniciado);
-    const isFinalizado = parseIniciado(loteFinalizado);
-    const prevista = dataPrevistaSaida ? new Date(dataPrevistaSaida) : null;
-    const isAtrasado = !!(prevista && !isNaN(prevista) && Date.now() > prevista.getTime() && !isFinalizado);
+    // === utils de data ===
+    function parseBrDateTime(s) {
+        // Aceita "DD/MM/YYYY HH:mm" ou "DD/MM/YYYY"
+        const [dia, mes, resto] = s.split('/');
+        const [ano, horario] = (resto || '').split(' ');
+        if (!dia || !mes || !ano) return new Date(NaN);
+
+        if (horario) {
+            const [hh, mm] = horario.split(':');
+            return new Date(
+                Number(ano),
+                Number(mes) - 1,
+                Number(dia),
+                Number(hh || 0),
+                Number(mm || 0),
+                0,
+                0
+            );
+        }
+
+        return new Date(Number(ano), Number(mes) - 1, Number(dia));
+    }
+
+    function parseDateFlexible(input) {
+        if (!input) return null;
+        // Se vier string BR (DD/MM/YYYY...), parseia manualmente
+        if (typeof input === 'string' && /\d{2}\/\d{2}\/\d{4}/.test(input)) {
+            return parseBrDateTime(input);
+        }
+        // Senão, tenta parse nativo (ISO/Date)
+        return new Date(input);
+    }
+
+    // === flags ===
+    const iniciado = Number(loteIniciado) === 1;     // se sua regra for diferente, ajuste aqui
+    const finalizado = Number(loteFinalizado) === 1; // 1 = finalizado; ajuste se for outro valor
+
+    const previstaDate = parseDateFlexible(dataPrevistaSaida);
+    const previstaTime = previstaDate ? previstaDate.getTime() : NaN;
+
+    const isAtrasado =
+        Number.isFinite(previstaTime) &&
+        previstaTime < Date.now() &&
+        !finalizado;
 
     return (
         <Box sx={{ mt: 5, mb: 4, p: 3, borderRadius: 2, boxShadow: 2, backgroundColor: '#fff', minHeight: '200px' }}>
@@ -234,7 +274,7 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
                         { label: 'Data de criação', value: dataEntrada ? new Date(dataEntrada).toLocaleString() : '-' },
                         { label: 'Valor Estimado', value: `R$ ${valorEstimado}` },
                         { label: 'Nome do Recebedor', value: nomeRecebedor },
-                        { label: 'Início', value: isIniciado ? dataInicio : 'Não iniciado' },
+                        { label: 'Início', value: dataInicio ? dataInicio : 'Não iniciado' },
                         { label: 'Data de Saída', value: dataPrevistaSaida }
                     ]}
                 />

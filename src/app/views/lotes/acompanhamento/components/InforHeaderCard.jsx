@@ -14,9 +14,9 @@ const InfoHeaderCard = ({ items = [], overdue = false }) => {
                 <Box
                     sx={{
                         position: 'absolute',
-                        top: 10,
+                        top: 11,
                         right: -50,     // empurra um pouco para fora
-                        width: 180,     // comprimento da faixa
+                        width: 95,     // comprimento da faixa
                         height: 24,     // espessura
                         bgcolor: '#d32f2f',
                         color: '#fff',
@@ -24,7 +24,7 @@ const InfoHeaderCard = ({ items = [], overdue = false }) => {
                         fontWeight: 'bold',
                         textAlign: 'center',
                         lineHeight: '24px',
-                        transform: 'rotate(45deg)', // cria o efeito de “\”
+                        transform: 'rotate(90deg)', // cria o efeito de “\”
                         boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
                     }}
                 >
