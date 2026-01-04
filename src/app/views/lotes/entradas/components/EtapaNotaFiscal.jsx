@@ -106,6 +106,8 @@ export function EtapaNotaFiscal({ data, setData, onNext, onBack }) {
     const getValidDecimal = (val) => typeof val === 'number' ? val : 0;
 
     const handleAvancar = () => {
+        /* REMOVIDO VALIDAÇÃO DE NF 04/01/2025 */
+        /*         
         if (!form.chaveAcesso || !form.numeroNota || !form.valorProdutos) {
             setSnackbar({
                 open: true,
@@ -114,7 +116,7 @@ export function EtapaNotaFiscal({ data, setData, onNext, onBack }) {
                 mensagem: 'Preencha os campos obrigatórios: Chave de Acesso, Número da Nota e Valor dos Produtos.'
             });
             return;
-        }
+        } */
 
         setData(form);
         onNext();

@@ -68,7 +68,7 @@ export default function LotesEntradas() {
 
     const handleSelectFornecedor = async (id) => {
         try {
-            const resp = await fetch(`${apiUrl}/fornecedorProd/fornecedorProd/fornecedores_producao/${id}`);
+            const resp = await fetch(`${apiUrl}/fornecedorProd/fornecedores_producao/${id}`);
             const data = await resp.json();
 
             setDados(prev => ({

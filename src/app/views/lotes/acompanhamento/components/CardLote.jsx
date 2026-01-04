@@ -232,8 +232,8 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
     }
 
     // === flags ===
-    const iniciado = Number(loteIniciado) === 1;     // se sua regra for diferente, ajuste aqui
-    const finalizado = Number(loteFinalizado) === 1; // 1 = finalizado; ajuste se for outro valor
+    const iniciado = parseIniciado(loteIniciado);
+    const finalizado = parseIniciado(loteFinalizado);
 
     const previstaDate = parseDateFlexible(dataPrevistaSaida);
     const previstaTime = previstaDate ? previstaDate.getTime() : NaN;
@@ -242,6 +242,8 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
         Number.isFinite(previstaTime) &&
         previstaTime < Date.now() &&
         !finalizado;
+    const isNaoIniciado = !iniciado && !finalizado;
+    const isEmProducao = iniciado && !finalizado && !isAtrasado;
 
     return (
         <Box sx={{ mt: 5, mb: 4, p: 3, borderRadius: 2, boxShadow: 2, backgroundColor: '#fff', minHeight: '200px' }}>
@@ -250,6 +252,8 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
             <Box sx={{ mb: 3, color: '#5a5a5a' }}>
                 <InfoHeaderCard
                     overdue={isAtrasado}
+                    notStarted={isNaoIniciado}
+                    inProduction={isEmProducao}
                     items={[
                         { label: 'Identificação', value: numeroIdentificador },
                         { label: 'CNPJ', value: fornecedor?.cnpj },
