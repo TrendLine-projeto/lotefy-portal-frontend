@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Breadcrumb } from "app/components";
 import { GoPackageDependencies } from "react-icons/go";
 import { Stepper, Step, StepLabel } from '@mui/material';
@@ -8,7 +8,7 @@ import styled from "@mui/material/styles/styled";
 import Box from "@mui/material/Box";
 
 
-// Importação das etapas
+// ImportaÃ§Ã£o das etapas
 import { EtapaFornecedor } from "./components/EtapaFornecedor";
 import { EtapaNotaFiscal } from "./components/EtapaNotaFiscal";
 import { EtapaProdutos } from "./components/EtapaProdutos";
@@ -42,11 +42,11 @@ export default function LotesEntradas() {
     });
 
     const etapas = [
-        "Informações do Lote",
+        "InformaÃ§Ãµes do Lote",
         "Fornecedor",
         "Nota Fiscal",
         "Produtos",
-        "Preferências"
+        "PreferÃªncias"
     ];
 
     useEffect(() => {
@@ -255,3 +255,4 @@ export default function LotesEntradas() {
         </Container>
     );
 }
+

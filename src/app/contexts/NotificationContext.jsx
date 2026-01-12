@@ -41,8 +41,8 @@ const NotificationContext = createContext({
   pagina: 1,
   quantidadePorPagina: 10,
   loading: false,
-  deleteNotification: () => {},
   clearNotifications: () => {},
+  markNotificationAsRead: () => {},
   getNotifications: () => {},
   createNotification: () => {}
 });
@@ -51,14 +51,19 @@ export const NotificationProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const apiUrl = import.meta.env.VITE_API_URL;
 
-  const getNotifications = async (pagina = state.pagina, quantidadePorPagina = state.quantidadePorPagina, append = false) => {
+  const getNotifications = async (
+    pagina = state.pagina,
+    quantidadePorPagina = state.quantidadePorPagina,
+    append = false,
+    lido = 0
+  ) => {
     const idCliente = getIdClienteFromToken();
     if (!idCliente) return;
 
     dispatch({ type: "SET_LOADING", payload: true });
     try {
       const res = await axios.get(`${apiUrl}/notificacoes`, {
-        params: { pagina, quantidadePorPagina, idCliente }
+        params: { pagina, quantidadePorPagina, idCliente, lido }
       });
       const { itens = [], total = 0 } = res.data || {};
       const merged = append ? [...(state.notifications || []), ...itens] : itens;
@@ -77,18 +82,45 @@ export const NotificationProvider = ({ children }) => {
     }
   };
 
-  const deleteNotification = async (notificationID) => {
+  const buildUpdatePayload = (notification, lido) => ({
+    descricao: notification.descricao,
+    url: notification.url,
+    tipo: notification.tipo,
+    idCliente: notification.idCliente ?? getIdClienteFromToken(),
+    lido
+  });
+
+  const updateNotificationStatus = async (notification, lido) => {
+    if (!notification?.id) return;
+    await axios.put(
+      `${apiUrl}/notificacoes/${notification.id}`,
+      buildUpdatePayload(notification, lido)
+    );
+  };
+
+  const markNotificationAsRead = async (notification) => {
     try {
-      if (!notificationID) return;
-      await axios.delete(`${apiUrl}/notificacoes/${notificationID}`);
-      dispatch({ type: "DELETE_NOTIFICATION", id: notificationID });
+      if (!notification?.id) return;
+      await updateNotificationStatus(notification, 1);
+      dispatch({ type: "DELETE_NOTIFICATION", id: notification.id });
     } catch (e) {
-      console.error(e);
+      console.error("Erro ao marcar notificacao como lida", e);
     }
   };
 
-  const clearNotifications = () => {
-    dispatch({ type: "CLEAR_NOTIFICATIONS" });
+  const clearNotifications = async () => {
+    const itens = state.notifications || [];
+    if (!itens.length) return;
+
+    dispatch({ type: "SET_LOADING", payload: true });
+    try {
+      await Promise.all(itens.map((item) => updateNotificationStatus(item, 1)));
+      await getNotifications(1, state.quantidadePorPagina);
+    } catch (e) {
+      console.error("Erro ao marcar todas as notificacoes como lidas", e);
+    } finally {
+      dispatch({ type: "SET_LOADING", payload: false });
+    }
   };
 
   const createNotification = async (notification) => {
@@ -116,8 +148,8 @@ export const NotificationProvider = ({ children }) => {
     <NotificationContext.Provider
       value={{
         getNotifications,
-        deleteNotification,
         clearNotifications,
+        markNotificationAsRead,
         createNotification,
         notifications: state.notifications,
         total: state.total,

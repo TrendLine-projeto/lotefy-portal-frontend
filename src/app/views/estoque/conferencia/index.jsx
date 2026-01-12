@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Breadcrumb } from "app/components";
 import { Snackbar, Alert, Typography } from "@mui/material";
 import { GiWireCoil } from "react-icons/gi";
@@ -21,8 +20,8 @@ const Container = styled("div")(({ theme }) => ({
 }));
 
 const mockData = [
-    { id: 1, Tipo: 'Insumos Técnicos' },
-    { id: 2, Tipo: 'Matéria-prima' },
+    { id: 1, Tipo: 'Insumos tÃ©cnicos' },
+    { id: 2, Tipo: 'MatÃ©ria-prima' },
 ];
 
 export default function ConferenciaMain() {
@@ -123,7 +122,7 @@ export default function ConferenciaMain() {
                 }));
             }
         } catch (error) {
-            console.error('Erro ao buscar os dados de conferência:', error);
+            console.error('Erro ao buscar os dados de conferÃªncia:', error);
             setSnackbar({
                 open: true,
                 message: 'Erro ao buscar os dados',
@@ -146,7 +145,7 @@ export default function ConferenciaMain() {
             setSalvandoConferencia(true);
             const item = dadosConferencia.find(el => el.id === id);
 
-            if (!item) throw new Error('Item não encontrado');
+            if (!item) throw new Error('Item nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o encontrado');
 
             const payload = {
                 id_produto: item.id,
@@ -167,9 +166,9 @@ export default function ConferenciaMain() {
             if (response.ok) {
                 setSnackbar({
                     open: true,
-                    message: 'Conferência salva com sucesso!',
+                    message: 'conferÃªncia salva com sucesso!',
                     severity: 'success',
-                    mensagem: 'Conferência registrada'
+                    mensagem: 'conferÃªncia registrada'
                 });
                 setDadosConferencia(prev =>
                     prev.map(item =>
@@ -177,10 +176,10 @@ export default function ConferenciaMain() {
                     )
                 );
             } else {
-                throw new Error(data.mensagem || 'Erro ao salvar conferência');
+                throw new Error(data.mensagem || 'Erro ao salvar a conferÃªncia');
             }
         } catch (error) {
-            console.error('Erro ao salvar conferência:', error);
+            console.error('Erro ao salvar a conferÃªncia:', error);
             setSnackbar({
                 open: true,
                 message: error.message || 'Erro inesperado',
@@ -195,7 +194,7 @@ export default function ConferenciaMain() {
     const abrirDialogConferencia = (id, qtdConferida) => {
         setDialog({
             open: true,
-            title: 'Confirmar Conferência',
+            title: 'Confirmar conferÃªncia',
             description: `Deseja salvar a quantidade conferida?`,
             confirmText: 'Confirmar',
             cancelText: 'Cancelar',
@@ -213,7 +212,7 @@ export default function ConferenciaMain() {
     const fields = [
         {
             name: 'nome',
-            label: 'Nome da Matéria-prima',
+            label: 'Nome da MatÃ©ria-prima',
             type: 'text',
             placeholder: 'Ex: Tecido Tricoline'
         }
@@ -255,7 +254,7 @@ export default function ConferenciaMain() {
                             name: (
                                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                     <GiWireCoil style={{ marginRight: 6 }} />
-                                    Conferência
+                                    ConferÃªncia
                                 </Box>
                             )
                         }
@@ -269,7 +268,7 @@ export default function ConferenciaMain() {
                 onChange={handleChange}
                 onFilter={handleFilter}
                 onClear={handleClear}
-                title="Filtros de Insumos Técnicos"
+                title="Filtros de Insumos TÃ©cnicos"
                 expanded={painelExpandido}
                 onToggle={(event, isExpanded) => setPainelExpandido(isExpanded)}
             >
@@ -279,11 +278,12 @@ export default function ConferenciaMain() {
                     <DataTable
                         columns={columns}
                         rows={filteredData}
-                        pagination={pagination}
-                        onPageChange={(page) => {
-                            console.log("Mudando para página:", page);
-                            setPagination(prev => ({ ...prev, page }));
+                        pagination={{
+                            page: pagination.page,
+                            perPage: pagination.perPage,
+                            total: filteredData.length
                         }}
+                        onPageChange={(page) => setPagination(prev => ({ ...prev, page }))}
                         onRowsPerPageChange={(perPage) =>
                             setPagination(prev => ({ ...prev, perPage, page: 1 }))
                         }
@@ -307,9 +307,65 @@ export default function ConferenciaMain() {
                 <Box display="flex" justifyContent="center" py={4}>
                     <Loading />
                 </Box>
+            ) : tabelaSelecionada === null ? (
+                <Box
+                    sx={{
+                        mt: 4,
+                        p: 4,
+                        borderRadius: 3,
+                        border: '1px dashed #cbd5e1',
+                        background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+                        textAlign: 'center'
+                    }}
+                >
+                    <Box sx={{ maxWidth: 520, mx: 'auto' }}>
+                        <svg
+                            viewBox="0 0 640 360"
+                            width="100%"
+                            height="220"
+                            role="img"
+                            aria-label="Selecione o tipo de estoque acima"
+                        >
+                            <defs>
+                                <linearGradient id="lote-bg-conferencia" x1="0" x2="1" y1="0" y2="1">
+                                    <stop offset="0%" stopColor="#e2f2ff" />
+                                    <stop offset="100%" stopColor="#fef3c7" />
+                                </linearGradient>
+                                <linearGradient id="lote-card-conferencia" x1="0" x2="1">
+                                    <stop offset="0%" stopColor="#ffffff" />
+                                    <stop offset="100%" stopColor="#f8fafc" />
+                                </linearGradient>
+                            </defs>
+                            <rect x="40" y="40" width="560" height="280" rx="26" fill="url(#lote-bg-conferencia)" />
+                            <rect x="80" y="80" width="480" height="70" rx="16" fill="url(#lote-card-conferencia)" stroke="#e2e8f0" />
+                            <rect x="110" y="105" width="120" height="8" rx="4" fill="#cbd5e1" />
+                            <rect x="250" y="105" width="200" height="8" rx="4" fill="#cbd5e1" />
+                            <rect x="80" y="170" width="480" height="110" rx="20" fill="#ffffff" stroke="#e2e8f0" />
+                            <rect x="110" y="195" width="150" height="10" rx="5" fill="#94a3b8" />
+                            <rect x="110" y="220" width="210" height="10" rx="5" fill="#cbd5e1" />
+                            <rect x="110" y="245" width="170" height="10" rx="5" fill="#cbd5e1" />
+                            <rect x="360" y="195" width="160" height="30" rx="8" fill="#e2e8f0" />
+                            <rect x="360" y="235" width="160" height="30" rx="8" fill="#f1f5f9" />
+                            <path
+                                d="M320 310 L320 250 M320 250 L300 270 M320 250 L340 270"
+                                stroke="#64748b"
+                                strokeWidth="6"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            />
+                            <circle cx="320" cy="230" r="10" fill="#0ea5e9" />
+                        </svg>
+                    </Box>
+                    <Typography variant="h6" sx={{ mt: 2, color: '#334155', fontWeight: 600 }}>
+                        Selecione o tipo de estoque acima
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#64748b' }}>
+                        Escolha uma tabela para iniciar a conferencia.
+                    </Typography>
+                </Box>
             ) : dadosConferencia.length === 0 ? (
                 <Typography variant="body2" align="center" sx={{ py: 4 }}>
-                    Selecione um tipo de estoque acima.
+                    Nenhum registro encontrado para este tipo de estoque.
                 </Typography>
             ) : (
                 <>
@@ -331,11 +387,11 @@ export default function ConferenciaMain() {
                             </Box>
                         )}
                         <TabelaConferenciaEstoque
-                            key={pagination.page} // ← ESSENCIAL neste caso
+                            key={pagination.page}
                             dados={dadosConferencia}
                             pagination={pagination}
                             onPageChange={(newPage) => {
-                                console.log("📌 Atualizando página para:", newPage);
+                                console.log("Atualizando pagina para:", newPage);
                                 setPagination(prev => ({ ...prev, page: newPage }));
                             }}
                             onRowsPerPageChange={(perPage) =>
@@ -348,7 +404,6 @@ export default function ConferenciaMain() {
                     </Box>
                 </>
             )}
-
             <ConfirmDialog
                 open={dialog.open}
                 title={dialog.title}
@@ -365,3 +420,4 @@ export default function ConferenciaMain() {
         </Container>
     )
 }
+

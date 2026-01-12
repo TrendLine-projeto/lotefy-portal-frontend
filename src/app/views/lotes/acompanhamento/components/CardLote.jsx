@@ -57,7 +57,8 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
         idFornecedor_producao,
         fornecedor,
         notasFiscais,
-        produtos
+        produtos,
+        fechamento
     } = lote;
     const [snackbar, setSnackbar] = useState({
         open: false,
@@ -188,14 +189,18 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
         return styles;
     };
 
-    const formatarDataHora = (isoString) => {
-        const date = new Date(isoString);
+    const formatarDataHora = (valor) => {
+        const date = parseDateFlexible(valor);
+        if (!date || Number.isNaN(date.getTime())) {
+            return '-';
+        }
         const dia = String(date.getDate()).padStart(2, '0');
         const mes = String(date.getMonth() + 1).padStart(2, '0');
         const ano = date.getFullYear();
         const horas = String(date.getHours()).padStart(2, '0');
         const minutos = String(date.getMinutes()).padStart(2, '0');
-        return `${dia}/${mes}/${ano} ${horas}:${minutos}`;
+        const segundos = String(date.getSeconds()).padStart(2, '0');
+        return `${dia}/${mes}/${ano} ${horas}:${minutos}:${segundos}`;
     };
 
     // === utils de data ===
@@ -228,6 +233,20 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
             return parseBrDateTime(input);
         }
         // Senão, tenta parse nativo (ISO/Date)
+        if (typeof input === 'string' && /^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}$/.test(input)) {
+            const [data, horario] = input.split(' ');
+            const [ano, mes, dia] = data.split('-');
+            const [hh, mm, ss] = horario.split(':');
+            return new Date(
+                Number(ano),
+                Number(mes) - 1,
+                Number(dia),
+                Number(hh || 0),
+                Number(mm || 0),
+                Number(ss || 0),
+                0
+            );
+        }
         return new Date(input);
     }
 
@@ -515,6 +534,65 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
                         </Box>
                     )}
                 </ConfirmInicioLoteModal>
+            </Collapse>
+
+            <Collapse in={etapaExpandida === '5 - Finalizado'} timeout={400} unmountOnExit>
+                <Box mt={2} p={2} bgcolor="#f5f5f5" borderRadius={2}>
+                    <Typography variant="subtitle2" color="#494949" sx={{ mb: 2 }}>
+                        Dados de fechamento
+                    </Typography>
+
+                    {fechamento ? (
+                        <Box
+                            sx={{
+                                display: 'grid',
+                                gap: 1.5,
+                                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(3, 1fr)' }
+                            }}
+                        >
+                            <Box>
+                                <Typography variant="caption" color="#6b6b6b">Concluido 100%</Typography>
+                                <Typography variant="subtitle2">
+                                    {fechamento.concluido100 ? 'Sim' : 'Nao'}
+                                </Typography>
+                            </Box>
+                            <Box>
+                                <Typography variant="caption" color="#6b6b6b">Teve bonus</Typography>
+                                <Typography variant="subtitle2">
+                                    {fechamento.teveBonus ? 'Sim' : 'Nao'}
+                                </Typography>
+                            </Box>
+                            <Box>
+                                <Typography variant="caption" color="#6b6b6b">Bonus (R$)</Typography>
+                                <Typography variant="subtitle2">
+                                    {fechamento.bonusValor ?? '-'}
+                                </Typography>
+                            </Box>
+                            <Box>
+                                <Typography variant="caption" color="#6b6b6b">Pecas concluidas</Typography>
+                                <Typography variant="subtitle2">
+                                    {fechamento.pecasConcluidasSucesso ?? '-'}
+                                </Typography>
+                            </Box>
+                            <Box>
+                                <Typography variant="caption" color="#6b6b6b">Acrescimo entrega (%)</Typography>
+                                <Typography variant="subtitle2">
+                                    {fechamento.acrescimoEntregaPercent ?? '-'}
+                                </Typography>
+                            </Box>
+                            <Box>
+                                <Typography variant="caption" color="#6b6b6b">Fechado em</Typography>
+                                <Typography variant="subtitle2">
+                                    {fechamento.fechadoEm ? formatarDataHora(fechamento.fechadoEm) : '-'}
+                                </Typography>
+                            </Box>
+                        </Box>
+                    ) : (
+                        <Typography variant="body2" color="#6b6b6b">
+                            Nenhum fechamento registrado para este lote.
+                        </Typography>
+                    )}
+                </Box>
             </Collapse>
         </Box>
     );

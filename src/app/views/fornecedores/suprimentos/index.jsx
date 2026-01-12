@@ -1,4 +1,4 @@
-
+﻿
 import React, { useState, useEffect } from 'react';
 import { Breadcrumb } from "app/components";
 import { Snackbar, Alert } from "@mui/material";
@@ -164,6 +164,7 @@ export default function SuprimentosMain() {
             if (response.ok) {
                 setFornecedorSelecionado(null);
                 fetchData();
+                const nomeFornecedor = fornecedor?.razaoSocial || fornecedor?.nome || id;
                 setSnackbar({
                     open: true,
                     message: data.mensagem || 'Fornecedor cadastrado com sucesso!',
@@ -247,9 +248,9 @@ export default function SuprimentosMain() {
             if (response.ok) {
                 setSnackbar({
                     open: true,
-                    message: data.mensagem || 'Fornecedor excluído com sucesso!',
+                    message: data.mensagem || 'Fornecedor excluÃ­do com sucesso!',
                     severity: 'success',
-                    mensagem: 'Fornecedor excluído com sucesso!'
+                    mensagem: 'Fornecedor excluÃ­do com sucesso!'
                 });
                 setFornecedorSelecionado(null);
                 setModoEdicao(false);
@@ -288,8 +289,8 @@ export default function SuprimentosMain() {
     const abrirDialogEditar = (formData) => {
         setDialog({
             open: true,
-            title: 'Confirmar Edição',
-            description: `Deseja salvar as alterações para "${formData.razaoSocial}"?`,
+            title: 'Confirmar EdiÃ§Ã£o',
+            description: `Deseja salvar as alteraÃ§Ãµes para "${formData.razaoSocial}"?`,
             confirmText: 'Salvar',
             cancelText: 'Cancelar',
             confirmColor: 'primary',
@@ -310,7 +311,7 @@ export default function SuprimentosMain() {
 
         setDialog({
             open: true,
-            title: 'Confirmar Exclusão',
+            title: 'Confirmar ExclusÃ£o',
             description: `Deseja realmente excluir o fornecedor "${fornecedor.razaoSocial}"?`,
             confirmText: 'Excluir',
             cancelText: 'Cancelar',
@@ -324,7 +325,7 @@ export default function SuprimentosMain() {
     }, [pagination.page, pagination.perPage]);
 
     const fields = [
-        { name: 'razaoSocial', label: 'Razão Social', type: 'text', placeholder: 'Digite a razão social' },
+        { name: 'razaoSocial', label: 'RazÃ£o Social', type: 'text', placeholder: 'Digite a razÃ£o social' },
         { name: 'cidade', label: 'Cidade', type: 'text', placeholder: 'Digite a cidade' },
         { name: 'estado', label: 'Estado', type: 'text', placeholder: 'Digite o estado (UF)' },
         {
@@ -340,7 +341,7 @@ export default function SuprimentosMain() {
     ];
 
     const columns = [
-        { field: 'razaoSocial', headerName: 'Razão Social' },
+        { field: 'razaoSocial', headerName: 'RazÃ£o Social' },
         { field: 'cidade', headerName: 'Cidade' },
         { field: 'estado', headerName: 'UF' },
         { field: 'tipoFornecedor', headerName: 'Tipo' },
@@ -456,3 +457,4 @@ export default function SuprimentosMain() {
         </Container>
     )
 }
+

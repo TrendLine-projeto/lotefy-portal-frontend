@@ -20,12 +20,13 @@ import { themeShadows } from "../MatxTheme/themeColors";
 import { Paragraph, Small } from "../Typography";
 
 const Notification = styled("div")(() => ({
-  padding: "16px",
+  padding: "20px",
   marginBottom: "16px",
   display: "flex",
   alignItems: "center",
-  height: topBarHeight,
+  height: topBarHeight + 12,
   boxShadow: themeShadows[6],
+  borderRadius: "10px",
   "& h5": {
     marginLeft: "8px",
     marginTop: 0,
@@ -36,6 +37,7 @@ const Notification = styled("div")(() => ({
 
 const NotificationCard = styled(Box)(({ theme }) => ({
   position: "relative",
+  borderRadius: "12px",
   "&:hover": {
     "& .messageTime": { display: "none" },
     "& .deleteButton": { opacity: "1" }
@@ -48,17 +50,18 @@ const DeleteButton = styled(IconButton)(() => ({
   opacity: "0",
   position: "absolute",
   right: 5,
-  marginTop: 9,
+  marginTop: 12,
   marginRight: "24px",
   background: "rgba(0, 0, 0, 0.01)"
 }));
 
 const CardLeftContent = styled("div")(({ theme }) => ({
-  padding: "12px 8px",
+  padding: "14px 12px",
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
   background: "rgba(0, 0, 0, 0.01)",
+  borderRadius: "12px 12px 0 0",
   "& small": {
     fontWeight: "500",
     marginLeft: "16px",
@@ -76,8 +79,8 @@ export default function NotificationBar({ container }) {
   const { settings } = useSettings();
   const [panelOpen, setPanelOpen] = useState(false);
   const {
-    deleteNotification,
     clearNotifications,
+    markNotificationAsRead,
     notifications,
     getNotifications,
     total,
@@ -86,6 +89,7 @@ export default function NotificationBar({ container }) {
   } = useNotification();
   const [page, setPage] = useState(1);
   const perPage = quantidadePorPagina || 10;
+  const panelWidth = sideNavWidth + 40;
 
   const handleDrawerToggle = () => setPanelOpen(!panelOpen);
 
@@ -101,6 +105,11 @@ export default function NotificationBar({ container }) {
     const next = page + 1;
     setPage(next);
     getNotifications(next, perPage, true);
+  };
+
+  const handleMarkAllAsRead = () => {
+    setPage(1);
+    clearNotifications();
   };
 
   const badgeCount = total || notifications?.length || 0;
@@ -123,7 +132,7 @@ export default function NotificationBar({ container }) {
           open={panelOpen}
           onClose={handleDrawerToggle}
           ModalProps={{ keepMounted: true }}>
-          <Box sx={{ width: sideNavWidth }}>
+          <Box sx={{ width: panelWidth }}>
             <Notification>
               <Notifications color="primary" />
               <h5>Notificacoes</h5>
@@ -140,7 +149,7 @@ export default function NotificationBar({ container }) {
 
               {notifications?.map((item) => (
                 <NotificationCard key={item.id}>
-                  <Card elevation={6} sx={{ mb: 2 }}>
+                  <Card elevation={6} sx={{ mb: 2, borderRadius: 2 }}>
                     <CardLeftContent>
                       <Box display="flex" alignItems="center">
                         <Icon className="icon" color="primary">
@@ -154,18 +163,9 @@ export default function NotificationBar({ container }) {
                       </Small>
                     </CardLeftContent>
 
-                    <Box p={2} pr={6}>
+                    <Box sx={{ p: 2.5, pr: 6 }}>
                       <Paragraph sx={{ mb: 1, fontWeight: 500 }}>{item.descricao}</Paragraph>
                     </Box>
-
-                    <DeleteButton
-                      className="deleteButton"
-                      onClick={() => deleteNotification(item.id)}
-                      size="small"
-                      aria-label="Remover notificacao"
-                    >
-                      <Clear fontSize="small" />
-                    </DeleteButton>
                   </Card>
                 </NotificationCard>
               ))}
@@ -178,7 +178,7 @@ export default function NotificationBar({ container }) {
             </Box>
 
             {!!notifications?.length && (
-              <Button fullWidth onClick={clearNotifications}>
+              <Button fullWidth onClick={handleMarkAllAsRead}>
                 Marcar como lidas
               </Button>
             )}

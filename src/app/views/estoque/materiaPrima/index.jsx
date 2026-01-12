@@ -1,4 +1,4 @@
-
+﻿
 import React, { useState, useEffect } from 'react';
 import { Breadcrumb } from "app/components";
 import { Snackbar, Alert } from "@mui/material";
@@ -80,7 +80,7 @@ export default function MateriaPrimaMain() {
             });
             const result = await res.json();
 
-            if (result.mensagem === "Nenhuma matéria prima encontrada.") {
+            if (result.mensagem === "Nenhuma matÃ©ria prima encontrada.") {
                 setData([]);
                 setPagination(prev => ({
                     ...prev,
@@ -131,17 +131,17 @@ export default function MateriaPrimaMain() {
             } else {
                 setSnackbar({
                     open: true,
-                    message: data.mensagem || 'Erro ao selecionar a Matéria-prima!',
+                    message: data.mensagem || 'Erro ao selecionar a MatÃ©ria-prima!',
                     severity: 'error',
-                    mensagem: 'Erro ao selecionar a Matéria-prima!'
+                    mensagem: 'Erro ao selecionar a MatÃ©ria-prima!'
                 });
             }
         } catch (err) {
             setSnackbar({
                 open: true,
-                message: data.mensagem || 'Erro ao selecionar a Matéria-prima!',
+                message: data.mensagem || 'Erro ao selecionar a MatÃ©ria-prima!',
                 severity: 'error',
-                mensagem: 'Erro ao selecionar a Matéria-prima!'
+                mensagem: 'Erro ao selecionar a MatÃ©ria-prima!'
             });
         }
     };
@@ -166,24 +166,24 @@ export default function MateriaPrimaMain() {
                 fetchData();
                 setSnackbar({
                     open: true,
-                    message: data.mensagem || 'Matéria-prima cadastrada com sucesso!',
+                    message: data.mensagem || 'MatÃ©ria-prima cadastrada com sucesso!',
                     severity: 'success',
                     mensagem: 'Cadastrado realizado com sucesso'
                 });
             } else {
                 setSnackbar({
                     open: true,
-                    message: data.mensagem || 'Erro ao cadastrado a Matéria-prima!',
+                    message: data.mensagem || 'Erro ao cadastrado a MatÃ©ria-prima!',
                     severity: 'error',
-                    mensagem: 'Erro ao cadastrado a Matéria-prima!'
+                    mensagem: 'Erro ao cadastrado a MatÃ©ria-prima!'
                 });
             }
         } catch (error) {
             setSnackbar({
                 open: true,
-                message: data.mensagem || 'Erro ao cadastrado a Matéria-prima!',
+                message: data.mensagem || 'Erro ao cadastrado a MatÃ©ria-prima!',
                 severity: 'error',
-                mensagem: 'Erro ao cadastrado a Matéria-prima!'
+                mensagem: 'Erro ao cadastrado a MatÃ©ria-prima!'
             });
         }
     };
@@ -209,7 +209,7 @@ export default function MateriaPrimaMain() {
             if (response.ok) {
                 setSnackbar({
                     open: true,
-                    message: data.mensagem || 'Matéria-prima atualizada com sucesso!',
+                    message: data.mensagem || 'MatÃ©ria-prima atualizada com sucesso!',
                     severity: 'success',
                     mensagem: 'Registro atualizado com sucesso!'
                 });
@@ -219,16 +219,16 @@ export default function MateriaPrimaMain() {
             } else {
                 setSnackbar({
                     open: true,
-                    message: data.mensagem || 'Erro ao atualizar matéria-prima.',
+                    message: data.mensagem || 'Erro ao atualizar matÃ©ria-prima.',
                     severity: 'error',
                     mensagem: 'Registro atualizado com sucesso!'
                 });
             }
         } catch (error) {
-            console.error('Erro ao atualizar matéria-prima:', error);
+            console.error('Erro ao atualizar matÃ©ria-prima:', error);
             setSnackbar({
                 open: true,
-                message: 'Erro ao atualizar matéria-prima.',
+                message: 'Erro ao atualizar matÃ©ria-prima.',
                 severity: 'error'
             });
         }
@@ -248,13 +248,14 @@ export default function MateriaPrimaMain() {
             if (response.ok) {
                 setSnackbar({
                     open: true,
-                    message: data.mensagem || 'Registro excluído com sucesso!',
+                    message: data.mensagem || 'Registro excluÃ­do com sucesso!',
                     severity: 'success',
-                    mensagem: 'Registro excluído com sucesso!'
+                    mensagem: 'Registro excluÃ­do com sucesso!'
                 });
                 setDataSelecionado(null);
                 setModoEdicao(false);
                 fetchData();
+                const nomeMaterial = material?.nome || material?.razaoSocial || id;
             } else {
                 setSnackbar({
                     open: true,
@@ -288,8 +289,8 @@ export default function MateriaPrimaMain() {
     const abrirDialogEditar = (formData) => {
         setDialog({
             open: true,
-            title: 'Confirmar Edição',
-            description: `Deseja salvar as alterações para "${formData.nome}"?`,
+            title: 'Confirmar EdiÃ§Ã£o',
+            description: `Deseja salvar as alteraÃ§Ãµes para "${formData.nome}"?`,
             confirmText: 'Salvar',
             cancelText: 'Cancelar',
             confirmColor: 'primary',
@@ -310,7 +311,7 @@ export default function MateriaPrimaMain() {
 
         setDialog({
             open: true,
-            title: 'Confirmar Exclusão',
+            title: 'Confirmar ExclusÃ£o',
             description: `Deseja realmente excluir o registro "${materiais.razaoSocial}"?`,
             confirmText: 'Excluir',
             cancelText: 'Cancelar',
@@ -366,7 +367,7 @@ export default function MateriaPrimaMain() {
     const fields = [
         {
             name: 'nome',
-            label: 'Nome da Matéria-prima',
+            label: 'Nome da MatÃ©ria-prima',
             type: 'text',
             placeholder: 'Ex: Tecido Tricoline'
         },
@@ -374,25 +375,25 @@ export default function MateriaPrimaMain() {
             name: 'tipo',
             label: 'Tipo',
             type: 'text',
-            placeholder: 'Ex: tecido, linha, zíper...'
+            placeholder: 'Ex: tecido, linha, zÃ­per...'
         },
         {
             name: 'marca',
             label: 'Marca',
             type: 'text',
-            placeholder: 'Ex: Têxtil Brasil'
+            placeholder: 'Ex: TÃªxtil Brasil'
         },
         {
             name: 'unidade',
             label: 'Unidade',
             type: 'select',
             options: [
-                { label: 'Centímetro (cm)', value: 'CM' },
+                { label: 'CentÃ­metro (cm)', value: 'CM' },
                 { label: 'Metro (m)', value: 'M' },
-                { label: 'Milímetro (mm)', value: 'MM' },
-                { label: 'Quilômetro (km)', value: 'KM' },
+                { label: 'MilÃ­metro (mm)', value: 'MM' },
+                { label: 'QuilÃ´metro (km)', value: 'KM' },
                 { label: 'Polegada (in)', value: 'IN' },
-                { label: 'Peça (un)', value: 'UN' },
+                { label: 'PeÃ§a (un)', value: 'UN' },
                 { label: 'Rolo', value: 'Rolo' },
             ]
         },
@@ -444,7 +445,7 @@ export default function MateriaPrimaMain() {
                             name: (
                                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                     <GiWireCoil style={{ marginRight: 6 }} />
-                                    Matéria-prima
+                                    MatÃ©ria-prima
                                 </Box>
                             )
                         }
@@ -458,7 +459,7 @@ export default function MateriaPrimaMain() {
                 onChange={handleChange}
                 onFilter={handleFilter}
                 onClear={handleClear}
-                title="Filtros de matéria-prima"
+                title="Filtros de matÃ©ria-prima"
                 expanded={painelExpandido}
                 onToggle={(event, isExpanded) => setPainelExpandido(isExpanded)}
             >
@@ -523,3 +524,4 @@ export default function MateriaPrimaMain() {
         </Container>
     )
 }
+

@@ -4,10 +4,23 @@ import {
     TablePagination, CircularProgress, Box, Typography
 } from '@mui/material';
 
-const DataTable = ({ columns = [], rows = [], loading = false, pagination, onPageChange, onRowsPerPageChange }) => {
+const DataTable = ({
+    columns = [],
+    rows = [],
+    loading = false,
+    pagination,
+    onPageChange,
+    onRowsPerPageChange,
+    dense = false,
+    keepHeaderOnEmpty = false,
+    emptyMessage = 'Nenhum resultado encontrado.'
+}) => {
     const safeColumns = Array.isArray(columns) ? columns : [];
     const safeRows = Array.isArray(rows) ? rows : [];
     const cellMaxWidth = 180;
+    const cellPaddingY = dense ? 0.75 : 1.5;
+    const cellPaddingX = dense ? 1 : 2;
+    const showEmptyMessage = safeRows.length === 0 && !keepHeaderOnEmpty;
 
     return (
         <Box>
@@ -15,9 +28,9 @@ const DataTable = ({ columns = [], rows = [], loading = false, pagination, onPag
                 <Box display="flex" justifyContent="center" py={4}>
                     <CircularProgress />
                 </Box>
-            ) : safeRows.length === 0 ? (
+            ) : showEmptyMessage ? (
                 <Typography variant="body2" align="center" sx={{ py: 4 }}>
-                    Nenhum resultado encontrado.
+                    {emptyMessage}
                 </Typography>
             ) : (
                 <>
@@ -30,8 +43,8 @@ const DataTable = ({ columns = [], rows = [], loading = false, pagination, onPag
                                         sx={{
                                             borderRight: index < safeColumns.length - 1 ? '1px solid #e0e0e0' : 'none',
                                             fontWeight: 600,
-                                            px: 2,
-                                            py: 1.5
+                                            px: cellPaddingX,
+                                            py: cellPaddingY
                                         }}
                                     >
                                         {col.headerName}
@@ -41,53 +54,69 @@ const DataTable = ({ columns = [], rows = [], loading = false, pagination, onPag
                         </TableHead>
 
                         <TableBody>
-                            {safeRows.map((row, idx) => (
-                                <TableRow
-                                    key={idx}
-                                    sx={{
-                                        '&:not(:last-child)': { borderBottom: '1px solid #e0e0e0' },
-                                        '&:hover': { backgroundColor: '#f9f9f9' }
-                                    }}
-                                >
-                                    {safeColumns.map((col, index) => {
-                                        const rawValue = col.renderCell ? col.renderCell(row) : (row[col.field] ?? '');
-                                        const isPrimitive = typeof rawValue === 'string' || typeof rawValue === 'number';
-                                        const displayValue = col.renderCell ? rawValue : String(rawValue);
-                                        const maxWidth = col.maxWidth || cellMaxWidth;
-                                        return (
-                                            <TableCell
-                                                key={col.field}
-                                                title={isPrimitive ? String(rawValue) : undefined}
-                                                sx={{
-                                                    borderRight: index < safeColumns.length - 1 ? '1px solid #f0f0f0' : 'none',
-                                                    px: 2,
-                                                    py: 1.5,
-                                                    maxWidth,
-                                                    whiteSpace: 'nowrap',
-                                                    overflow: 'hidden',
-                                                    textOverflow: 'ellipsis'
-                                                }}
-                                            >
-                                                {isPrimitive ? (
-                                                    <span
-                                                        title={String(rawValue)}
-                                                        style={{
-                                                            display: 'inline-block',
-                                                            maxWidth: '100%',
-                                                            overflow: 'hidden',
-                                                            textOverflow: 'ellipsis',
-                                                            verticalAlign: 'middle',
-                                                            whiteSpace: 'nowrap'
-                                                        }}
-                                                    >
-                                                        {displayValue}
-                                                    </span>
-                                                ) : displayValue}
-                                            </TableCell>
-                                        );
-                                    })}
+                            {safeRows.length === 0 ? (
+                                <TableRow>
+                                    <TableCell
+                                        colSpan={Math.max(safeColumns.length, 1)}
+                                        sx={{
+                                            px: cellPaddingX,
+                                            py: dense ? 2 : 4,
+                                            textAlign: 'center',
+                                            color: '#64748b'
+                                        }}
+                                    >
+                                        {emptyMessage}
+                                    </TableCell>
                                 </TableRow>
-                            ))}
+                            ) : (
+                                safeRows.map((row, idx) => (
+                                    <TableRow
+                                        key={idx}
+                                        sx={{
+                                            '&:not(:last-child)': { borderBottom: '1px solid #e0e0e0' },
+                                            '&:hover': { backgroundColor: '#f9f9f9' }
+                                        }}
+                                    >
+                                        {safeColumns.map((col, index) => {
+                                            const rawValue = col.renderCell ? col.renderCell(row) : (row[col.field] ?? '');
+                                            const isPrimitive = typeof rawValue === 'string' || typeof rawValue === 'number';
+                                            const displayValue = col.renderCell ? rawValue : String(rawValue);
+                                            const maxWidth = col.maxWidth || cellMaxWidth;
+                                            return (
+                                                <TableCell
+                                                    key={col.field}
+                                                    title={isPrimitive ? String(rawValue) : undefined}
+                                                    sx={{
+                                                        borderRight: index < safeColumns.length - 1 ? '1px solid #f0f0f0' : 'none',
+                                                        px: cellPaddingX,
+                                                        py: cellPaddingY,
+                                                        maxWidth,
+                                                        whiteSpace: 'nowrap',
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis'
+                                                    }}
+                                                >
+                                                    {isPrimitive ? (
+                                                        <span
+                                                            title={String(rawValue)}
+                                                            style={{
+                                                                display: 'inline-block',
+                                                                maxWidth: '100%',
+                                                                overflow: 'hidden',
+                                                                textOverflow: 'ellipsis',
+                                                                verticalAlign: 'middle',
+                                                                whiteSpace: 'nowrap'
+                                                            }}
+                                                        >
+                                                            {displayValue}
+                                                        </span>
+                                                    ) : displayValue}
+                                                </TableCell>
+                                            );
+                                        })}
+                                    </TableRow>
+                                ))
+                            )}
                         </TableBody>
                     </Table>
 

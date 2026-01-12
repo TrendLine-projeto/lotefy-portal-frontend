@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Breadcrumb } from "app/components";
 import { Snackbar, Alert } from "@mui/material";
 import { GiSewingMachine } from "react-icons/gi";
@@ -553,3 +553,4 @@ export default function MaquinasMain() {
         </Container>
     );
 }
+
