@@ -19,6 +19,7 @@ const ConferenciaMain = Loadable(lazy(() => import("app/views/estoque/conferenci
 const LotesEntradas = Loadable(lazy(() => import("app/views/lotes/entradas/index")));
 const LoteCompanhamentoMain = Loadable(lazy(() => import("app/views/lotes/acompanhamento/index")));
 const LoteSaidaMain = Loadable(lazy(() => import("app/views/lotes/saidas/index")));
+const ConferenciaQualidadeMain = Loadable(lazy(() => import("app/views/lotes/conferenciaqualidade/index")));
 const MaquinasMain = Loadable(lazy(() => import("app/views/ativos/maquinas/index")));
 const PlanoManutencaoMain = Loadable(lazy(() => import("app/views/ativos/planoManutencao/index")));
 const OrdemServicoMain = Loadable(lazy(() => import("app/views/ativos/ordemDeServico")));
@@ -50,6 +51,7 @@ const routes = [
       { path: "/lotes/lotessaidas", element: <LoteSaidaMain />, auth: authRoles.editor },
       { path: "/lotes/lotesacompanhamento", element: <LoteCompanhamentoMain />, auth: authRoles.editor },
       { path: "/lotes/loteemproducao", element: <LoteCompanhamentoMain />, auth: authRoles.editor },
+      { path: "/lotes/conferenciaqualidade", element: <ConferenciaQualidadeMain />, auth: authRoles.editor },
 
       { path: "/favoritos", element: <FavoritosMain />, auth: authRoles.editor },
 

@@ -13,7 +13,11 @@ const DataTable = ({
     onRowsPerPageChange,
     dense = false,
     keepHeaderOnEmpty = false,
-    emptyMessage = 'Nenhum resultado encontrado.'
+    emptyMessage = 'Nenhum resultado encontrado.',
+    getRowId,
+    onRowClick,
+    expandedRowId,
+    renderExpandedRow
 }) => {
     const safeColumns = Array.isArray(columns) ? columns : [];
     const safeRows = Array.isArray(rows) ? rows : [];
@@ -21,6 +25,12 @@ const DataTable = ({
     const cellPaddingY = dense ? 0.75 : 1.5;
     const cellPaddingX = dense ? 1 : 2;
     const showEmptyMessage = safeRows.length === 0 && !keepHeaderOnEmpty;
+    const resolveRowId = (row, idx) => {
+        if (typeof getRowId === 'function') {
+            return getRowId(row, idx);
+        }
+        return row?.id ?? idx;
+    };
 
     return (
         <Box>
@@ -69,53 +79,79 @@ const DataTable = ({
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                safeRows.map((row, idx) => (
-                                    <TableRow
-                                        key={idx}
-                                        sx={{
-                                            '&:not(:last-child)': { borderBottom: '1px solid #e0e0e0' },
-                                            '&:hover': { backgroundColor: '#f9f9f9' }
-                                        }}
-                                    >
-                                        {safeColumns.map((col, index) => {
-                                            const rawValue = col.renderCell ? col.renderCell(row) : (row[col.field] ?? '');
-                                            const isPrimitive = typeof rawValue === 'string' || typeof rawValue === 'number';
-                                            const displayValue = col.renderCell ? rawValue : String(rawValue);
-                                            const maxWidth = col.maxWidth || cellMaxWidth;
-                                            return (
-                                                <TableCell
-                                                    key={col.field}
-                                                    title={isPrimitive ? String(rawValue) : undefined}
-                                                    sx={{
-                                                        borderRight: index < safeColumns.length - 1 ? '1px solid #f0f0f0' : 'none',
-                                                        px: cellPaddingX,
-                                                        py: cellPaddingY,
-                                                        maxWidth,
-                                                        whiteSpace: 'nowrap',
-                                                        overflow: 'hidden',
-                                                        textOverflow: 'ellipsis'
-                                                    }}
-                                                >
-                                                    {isPrimitive ? (
-                                                        <span
-                                                            title={String(rawValue)}
-                                                            style={{
-                                                                display: 'inline-block',
-                                                                maxWidth: '100%',
+                                safeRows.map((row, idx) => {
+                                    const rowId = resolveRowId(row, idx);
+                                    const isExpanded = Boolean(
+                                        renderExpandedRow &&
+                                        expandedRowId !== undefined &&
+                                        expandedRowId !== null &&
+                                        rowId === expandedRowId
+                                    );
+                                    return (
+                                        <React.Fragment key={rowId}>
+                                            <TableRow
+                                                onClick={onRowClick ? () => onRowClick(row) : undefined}
+                                                sx={{
+                                                    '&:not(:last-child)': { borderBottom: '1px solid #e0e0e0' },
+                                                    '&:hover': { backgroundColor: '#f9f9f9' },
+                                                    cursor: onRowClick ? 'pointer' : 'default'
+                                                }}
+                                            >
+                                                {safeColumns.map((col, index) => {
+                                                    const rawValue = col.renderCell ? col.renderCell(row) : (row[col.field] ?? '');
+                                                    const isPrimitive = typeof rawValue === 'string' || typeof rawValue === 'number';
+                                                    const displayValue = col.renderCell ? rawValue : String(rawValue);
+                                                    const maxWidth = col.maxWidth || cellMaxWidth;
+                                                    return (
+                                                        <TableCell
+                                                            key={col.field}
+                                                            title={isPrimitive ? String(rawValue) : undefined}
+                                                            sx={{
+                                                                borderRight: index < safeColumns.length - 1 ? '1px solid #f0f0f0' : 'none',
+                                                                px: cellPaddingX,
+                                                                py: cellPaddingY,
+                                                                maxWidth,
+                                                                whiteSpace: 'nowrap',
                                                                 overflow: 'hidden',
-                                                                textOverflow: 'ellipsis',
-                                                                verticalAlign: 'middle',
-                                                                whiteSpace: 'nowrap'
+                                                                textOverflow: 'ellipsis'
                                                             }}
                                                         >
-                                                            {displayValue}
-                                                        </span>
-                                                    ) : displayValue}
-                                                </TableCell>
-                                            );
-                                        })}
-                                    </TableRow>
-                                ))
+                                                            {isPrimitive ? (
+                                                                <span
+                                                                    title={String(rawValue)}
+                                                                    style={{
+                                                                        display: 'inline-block',
+                                                                        maxWidth: '100%',
+                                                                        overflow: 'hidden',
+                                                                        textOverflow: 'ellipsis',
+                                                                        verticalAlign: 'middle',
+                                                                        whiteSpace: 'nowrap'
+                                                                    }}
+                                                                >
+                                                                    {displayValue}
+                                                                </span>
+                                                            ) : displayValue}
+                                                        </TableCell>
+                                                    );
+                                                })}
+                                            </TableRow>
+                                            {isExpanded && (
+                                                <TableRow>
+                                                    <TableCell
+                                                        colSpan={Math.max(safeColumns.length, 1)}
+                                                        sx={{
+                                                            px: cellPaddingX,
+                                                            py: dense ? 1.25 : 2,
+                                                            backgroundColor: '#f8fafc'
+                                                        }}
+                                                    >
+                                                        {renderExpandedRow(row)}
+                                                    </TableCell>
+                                                </TableRow>
+                                            )}
+                                        </React.Fragment>
+                                    );
+                                })
                             )}
                         </TableBody>
                     </Table>
