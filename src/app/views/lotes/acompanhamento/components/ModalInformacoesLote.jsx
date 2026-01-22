@@ -26,6 +26,22 @@ const formatarDataHora = (isoString) => {
     return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 };
 
+const toDateTimeLocal = (value) => {
+    if (!value) return '';
+    if (typeof value === 'string') {
+        if (/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}/.test(value)) {
+            return value.replace(' ', 'T').slice(0, 16);
+        }
+        if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(value)) {
+            return value.slice(0, 16);
+        }
+    }
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
+
 const ModalInformacoesLote = ({ open, onClose, lote, onSave }) => {
     const [abaSelecionada, setAbaSelecionada] = useState('detalhes');
     const [formData, setFormData] = useState({});
@@ -101,37 +117,45 @@ const ModalInformacoesLote = ({ open, onClose, lote, onSave }) => {
                         <Grid item xs={12} sm={6} md={4}>
                             <TextField
                                 label="Data de Entrada"
-                                value={formData.numeroIdentificador}
+                                value={toDateTimeLocal(formData.dataEntrada)}
                                 disabled
                                 fullWidth
                                 size="small"
+                                type="datetime-local"
+                                InputLabelProps={{ shrink: true }}
                             />
                         </Grid>
                         <Grid item xs={12} sm={6} md={4}>
                             <TextField
                                 label="Previsão de Saída"
-                                value={formatarDataHora(formData.dataPrevistaSaida)}
-                                disabled
+                                value={toDateTimeLocal(formData.dataPrevistaSaida)}
+                                onChange={(e) => handleChange('dataPrevistaSaida', e.target.value)}
                                 fullWidth
                                 size="small"
+                                type="datetime-local"
+                                InputLabelProps={{ shrink: true }}
                             />
                         </Grid>
                         <Grid item xs={12} sm={6} md={4}>
                             <TextField
                                 label="Data de Início"
-                                value={formatarDataHora(formData.dataInicio)}
-                                disabled
+                                value={toDateTimeLocal(formData.dataInicio)}
+                                onChange={(e) => handleChange('dataInicio', e.target.value)}
                                 fullWidth
                                 size="small"
+                                type="datetime-local"
+                                InputLabelProps={{ shrink: true }}
                             />
                         </Grid>
                         <Grid item xs={12} sm={6} md={4}>
                             <TextField
                                 label="Data de Saída"
-                                value={formatarDataHora(formData.dataSaida)}
-                                disabled
+                                value={toDateTimeLocal(formData.dataSaida)}
+                                onChange={(e) => handleChange('dataSaida', e.target.value)}
                                 fullWidth
                                 size="small"
+                                type="datetime-local"
+                                InputLabelProps={{ shrink: true }}
                             />
                         </Grid>
                         <Grid item xs={12} sm={6} md={4}>

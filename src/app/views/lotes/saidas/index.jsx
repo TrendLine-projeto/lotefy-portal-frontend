@@ -421,6 +421,18 @@ export default function LoteSaidaMain() {
                 </Alert>
             </Snackbar>
 
+            {loading && !dadosSelecionado && (
+                <Box
+                    sx={{
+                        mt: 4,
+                        display: 'flex',
+                        justifyContent: 'center'
+                    }}
+                >
+                    <Loading />
+                </Box>
+            )}
+
             {!dadosSelecionado && !loading && (
                 <Box
                     sx={{

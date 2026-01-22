@@ -20,6 +20,7 @@ const Container = styled("div")(({ theme }) => ({
 
 export default function ConferenciaQualidadeMain() {
     const apiUrl = import.meta.env.VITE_API_URL;
+    const simulateError = new URLSearchParams(window.location.search).get('simulateError') === '1';
     const [filters, setFilters] = useState({});
     const [dadosSelecionado, setDadosSelecionado] = useState(null);
     const [data, setData] = useState([]);
@@ -28,6 +29,7 @@ export default function ConferenciaQualidadeMain() {
     const [hasFiltered, setHasFiltered] = useState(true);
     const [filterNonce, setFilterNonce] = useState(0);
     const [painelExpandido, setPainelExpandido] = useState(false);
+    const [hasError, setHasError] = useState(false);
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: '',
@@ -39,6 +41,7 @@ export default function ConferenciaQualidadeMain() {
         setPagination((prev) => ({ ...prev, page: 1 }));
         setHasFiltered(true);
         setFilterNonce((prev) => prev + 1);
+        setHasError(false);
     };
 
     const handleChange = (name, value) => {
@@ -51,6 +54,7 @@ export default function ConferenciaQualidadeMain() {
         setDadosSelecionado(null);
         setHasFiltered(true);
         setFilterNonce((prev) => prev + 1);
+        setHasError(false);
     };
 
     const formatarDataHora = (isoString) => {
@@ -67,6 +71,18 @@ export default function ConferenciaQualidadeMain() {
     const fetchData = async () => {
         setLoading(true);
         try {
+            if (simulateError) {
+                setHasError(true);
+                setData([]);
+                setPagination((prev) => ({ ...prev, page: 1, total: 0 }));
+                setSnackbar({
+                    open: true,
+                    message: 'Erro simulado ao buscar lotes.',
+                    severity: 'error',
+                    mensagem: 'Erro simulado ao buscar lotes.'
+                });
+                return;
+            }
             const res = await fetch(`${apiUrl}/lotes/entrada_lotes/buscar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -78,6 +94,24 @@ export default function ConferenciaQualidadeMain() {
                 })
             });
             const result = await res.json();
+
+            if (!res.ok && result?.mensagem !== "Nenhum Lote encontrado para essa filial.") {
+                setHasError(true);
+                setData([]);
+                setPagination(prev => ({
+                    ...prev,
+                    page: 1,
+                    perPage: prev.perPage,
+                    total: 0
+                }));
+                setSnackbar({
+                    open: true,
+                    message: result?.mensagem || 'Erro ao buscar lotes.',
+                    severity: 'error',
+                    mensagem: result?.mensagem || 'Erro ao buscar lotes.'
+                });
+                return;
+            }
 
             if (result.mensagem === "Nenhum Lote encontrado para essa filial.") {
                 setData([]);
@@ -94,6 +128,7 @@ export default function ConferenciaQualidadeMain() {
                     mensagem: 'Nenhum lote encontrado'
                 });
             } else {
+                setHasError(false);
                 setData(result.lotes.map(f => ({
                     ...f,
                     dataEntrada: formatarDataHora(f.dataEntrada),
@@ -108,6 +143,13 @@ export default function ConferenciaQualidadeMain() {
             }
         } catch (error) {
             console.error('Erro ao buscar o lote:', error);
+            setHasError(true);
+            setSnackbar({
+                open: true,
+                message: 'Erro ao buscar lotes.',
+                severity: 'error',
+                mensagem: 'Erro ao buscar lotes.'
+            });
         } finally {
             setLoading(false);
         }
@@ -275,6 +317,18 @@ export default function ConferenciaQualidadeMain() {
                 </Alert>
             </Snackbar>
 
+            {loading && !dadosSelecionado && (
+                <Box
+                    sx={{
+                        mt: 4,
+                        display: 'flex',
+                        justifyContent: 'center'
+                    }}
+                >
+                    <Loading />
+                </Box>
+            )}
+
             {!dadosSelecionado && !loading && (
                 <Box
                     sx={{
@@ -287,48 +341,75 @@ export default function ConferenciaQualidadeMain() {
                     }}
                 >
                     <Box sx={{ maxWidth: 520, mx: 'auto' }}>
-                        <svg
-                            viewBox="0 0 640 360"
-                            width="100%"
-                            height="220"
-                            role="img"
-                            aria-label="Selecione o lote acima"
-                        >
-                            <defs>
-                                <linearGradient id="lote-bg" x1="0" x2="1" y1="0" y2="1">
-                                    <stop offset="0%" stopColor="#e2f2ff" />
-                                    <stop offset="100%" stopColor="#fef3c7" />
-                                </linearGradient>
-                                <linearGradient id="lote-card" x1="0" x2="1">
-                                    <stop offset="0%" stopColor="#ffffff" />
-                                    <stop offset="100%" stopColor="#f8fafc" />
-                                </linearGradient>
-                            </defs>
-                            <rect x="40" y="40" width="560" height="280" rx="26" fill="url(#lote-bg)" />
-                            <rect x="80" y="80" width="480" height="70" rx="16" fill="url(#lote-card)" stroke="#e2e8f0" />
-                            <rect x="110" y="105" width="120" height="8" rx="4" fill="#cbd5e1" />
-                            <rect x="250" y="105" width="200" height="8" rx="4" fill="#cbd5e1" />
-                            <rect x="80" y="170" width="480" height="110" rx="20" fill="#ffffff" stroke="#e2e8f0" />
-                            <rect x="110" y="195" width="150" height="10" rx="5" fill="#94a3b8" />
-                            <rect x="110" y="220" width="210" height="10" rx="5" fill="#cbd5e1" />
-                            <rect x="110" y="245" width="170" height="10" rx="5" fill="#cbd5e1" />
-                            <rect x="360" y="195" width="160" height="30" rx="8" fill="#e2e8f0" />
-                            <rect x="360" y="235" width="160" height="30" rx="8" fill="#f1f5f9" />
-                            <path
-                                d="M320 310 L320 250 M320 250 L300 270 M320 250 L340 270"
-                                stroke="#64748b"
-                                strokeWidth="6"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            />
-                            <circle cx="320" cy="230" r="10" fill="#0ea5e9" />
-                        </svg>
+                        {hasError ? (
+                            <svg
+                                viewBox="0 0 640 360"
+                                width="100%"
+                                height="220"
+                                role="img"
+                                aria-label="Erro ao buscar lotes"
+                            >
+                                <defs>
+                                    <linearGradient id="erro-bg" x1="0" x2="1" y1="0" y2="1">
+                                        <stop offset="0%" stopColor="#fee2e2" />
+                                        <stop offset="100%" stopColor="#fff7ed" />
+                                    </linearGradient>
+                                </defs>
+                                <rect x="40" y="40" width="560" height="280" rx="26" fill="url(#erro-bg)" />
+                                <rect x="80" y="90" width="480" height="180" rx="20" fill="#ffffff" stroke="#fecaca" />
+                                <circle cx="160" cy="180" r="38" fill="#fee2e2" />
+                                <path d="M160 158 L160 192" stroke="#dc2626" strokeWidth="8" strokeLinecap="round" />
+                                <circle cx="160" cy="212" r="5" fill="#dc2626" />
+                                <rect x="230" y="150" width="240" height="10" rx="5" fill="#fca5a5" />
+                                <rect x="230" y="175" width="200" height="10" rx="5" fill="#fecaca" />
+                                <rect x="230" y="200" width="260" height="10" rx="5" fill="#fee2e2" />
+                            </svg>
+                        ) : (
+                            <svg
+                                viewBox="0 0 640 360"
+                                width="100%"
+                                height="220"
+                                role="img"
+                                aria-label="Selecione o lote acima"
+                            >
+                                <defs>
+                                    <linearGradient id="lote-bg" x1="0" x2="1" y1="0" y2="1">
+                                        <stop offset="0%" stopColor="#e2f2ff" />
+                                        <stop offset="100%" stopColor="#fef3c7" />
+                                    </linearGradient>
+                                    <linearGradient id="lote-card" x1="0" x2="1">
+                                        <stop offset="0%" stopColor="#ffffff" />
+                                        <stop offset="100%" stopColor="#f8fafc" />
+                                    </linearGradient>
+                                </defs>
+                                <rect x="40" y="40" width="560" height="280" rx="26" fill="url(#lote-bg)" />
+                                <rect x="80" y="80" width="480" height="70" rx="16" fill="url(#lote-card)" stroke="#e2e8f0" />
+                                <rect x="110" y="105" width="120" height="8" rx="4" fill="#cbd5e1" />
+                                <rect x="250" y="105" width="200" height="8" rx="4" fill="#cbd5e1" />
+                                <rect x="80" y="170" width="480" height="110" rx="20" fill="#ffffff" stroke="#e2e8f0" />
+                                <rect x="110" y="195" width="150" height="10" rx="5" fill="#94a3b8" />
+                                <rect x="110" y="220" width="210" height="10" rx="5" fill="#cbd5e1" />
+                                <rect x="110" y="245" width="170" height="10" rx="5" fill="#cbd5e1" />
+                                <rect x="360" y="195" width="160" height="30" rx="8" fill="#e2e8f0" />
+                                <rect x="360" y="235" width="160" height="30" rx="8" fill="#f1f5f9" />
+                                <path
+                                    d="M320 310 L320 250 M320 250 L300 270 M320 250 L340 270"
+                                    stroke="#64748b"
+                                    strokeWidth="6"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                />
+                                <circle cx="320" cy="230" r="10" fill="#0ea5e9" />
+                            </svg>
+                        )}
                     </Box>
                     <Typography variant="h6" sx={{ mt: 2, color: '#334155', fontWeight: 600 }}>
-                        Selecione o lote acima
+                        {hasError ? 'Algo deu errado' : 'Selecione o lote acima'}
                     </Typography>
                     <Typography variant="body2" sx={{ color: '#64748b' }}>
-                        Use os filtros para listar lotes e escolher um para continuar.
+                        {hasError
+                            ? 'Tente recarregar a tela ou aguarde um momento e tente novamente.'
+                            : 'Use os filtros para listar lotes e escolher um para continuar.'}
                     </Typography>
                 </Box>
             )}

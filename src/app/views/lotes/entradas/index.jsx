@@ -42,11 +42,11 @@ export default function LotesEntradas() {
     });
 
     const etapas = [
-        "InformaÃ§Ãµes do Lote",
+        "Informações do Lote",
         "Fornecedor",
         "Nota Fiscal",
         "Produtos",
-        "PreferÃªncias"
+        "Preferências"
     ];
 
     useEffect(() => {

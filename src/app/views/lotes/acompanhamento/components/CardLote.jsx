@@ -453,11 +453,11 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
                         { label: 'Identificação', value: numeroIdentificador },
                         { label: 'CNPJ', value: fornecedor?.cnpj },
                         { label: 'Razão social', value: fornecedor?.razaoSocial },
-                        { label: 'Data de criação', value: dataEntrada ? new Date(dataEntrada).toLocaleString() : '-' },
+                        { label: 'Data de criação', value: dataEntrada ? formatarDataHora(dataEntrada) : '-' },
                         { label: 'Valor Estimado', value: `R$ ${valorEstimado}` },
                         { label: 'Nome do Recebedor', value: nomeRecebedor },
-                        { label: 'Início', value: dataInicio ? dataInicio : 'Não iniciado' },
-                        { label: 'Data de Saída', value: dataPrevistaSaida }
+                        { label: 'Início', value: dataInicio ? formatarDataHora(dataInicio) : 'Não iniciado' },
+                        { label: 'Data de Saída', value: dataPrevistaSaida ? formatarDataHora(dataPrevistaSaida) : '-' }
                     ]}
                 />
             </Box>

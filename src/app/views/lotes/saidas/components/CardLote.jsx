@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { Box, Typography, Grid, Divider, Tooltip, Dialog, DialogTitle, DialogContent, CircularProgress, DialogActions, Button, TextField, Checkbox, FormControlLabel } from '@mui/material';
-import { FaPen, FaBoxOpen, FaFileAlt, FaPowerOff, FaFlagCheckered } from 'react-icons/fa';
+import { Box, Typography, Grid, Divider, Tooltip, Dialog, DialogTitle, DialogContent, CircularProgress, DialogActions, Button, TextField, Checkbox, FormControlLabel, Chip, InputAdornment } from '@mui/material';
+import { FaPen, FaBoxOpen, FaFileAlt, FaPowerOff, FaFlagCheckered, FaCheckCircle  } from 'react-icons/fa';
 import { RiTimerFill } from "react-icons/ri"
 import { IconsCardDefault } from '../../../../utils/constant';
 import { buildColumnsWithEllipsis } from '../../../../utils/buildColumns';
@@ -19,14 +19,29 @@ const icones = {
     '2 - Produtos': <FaBoxOpen size={IconsCardDefault} />,
     '3 - NF-e': <FaFileAlt size={IconsCardDefault} />,
     '4 - Status': <FaPowerOff size={IconsCardDefault} />,
-    '5 - Finalizado': <FaFlagCheckered size={IconsCardDefault} />
+    '5 - Conferencia de qualidade': <FaCheckCircle size={IconsCardDefault} />,
+    '6 - Finalizado': <FaFlagCheckered size={IconsCardDefault} />
+};
+
+const isConferenciaFinalizada = (valor) =>
+    valor === 1 || valor === true || valor === '1' || valor === 'Sim';
+
+const produtoTemConferenciaFinalizada = (produto) =>
+    Array.isArray(produto?.conferencias) &&
+    produto.conferencias.some((conferencia) => isConferenciaFinalizada(conferencia?.finalizada));
+
+const temConferenciaFinalizada = (lote) => {
+    const produtos = Array.isArray(lote?.produtos) ? lote.produtos : [];
+    if (!produtos.length) return false;
+    return produtos.every((produto) => produtoTemConferenciaFinalizada(produto));
 };
 
 const getEtapasConcluidasFromLote = (lote) => {
     if (!lote) return 0;
 
-    if (lote.loteFinalizado === "Sim" || lote.loteFinalizado === 1) return 5;
-    if (lote.loteIniciado === "Não" || lote.loteIniciado === 0) return 3;
+    if (lote.loteFinalizado === "Sim" || lote.loteFinalizado === 1) return 6;
+    if (temConferenciaFinalizada(lote)) return 5;
+    if (parseIniciado(lote.loteIniciado) === false) return 3;
     return 4;
 };
 
@@ -42,6 +57,7 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
     const [fechamentoSucesso, setFechamentoSucesso] = useState(false);
     const [quantidadesConcluidas, setQuantidadesConcluidas] = useState({});
     const [openModal, setOpenModal] = useState(false);
+    const [produtoExpandidoId, setProdutoExpandidoId] = useState(null);
     const [fechamentoForm, setFechamentoForm] = useState(() => {
         const hoje = new Date();
         const pad = (n) => String(n).padStart(2, '0');
@@ -56,7 +72,7 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
             fechadoEm: dataHoje
         };
     });
-    const etapasDefault = ['1 - Lote', '2 - Produtos', '3 - NF-e', '4 - Status', '5 - Finalizado'];
+    const etapasDefault = ['1 - Lote', '2 - Produtos', '3 - NF-e', '4 - Status', '5 - Conferencia de qualidade', '6 - Finalizado'];
     const {
         id: loteId,
         numeroIdentificador,
@@ -152,6 +168,16 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
             return;
         }
 
+        if (temConferenciaPendente) {
+            setSnackbar({
+                open: true,
+                message: 'Existe produto sem conferencia finalizada. Finalize antes de encerrar o lote.',
+                severity: 'warning',
+                mensagem: 'Existe produto sem conferencia finalizada. Finalize antes de encerrar o lote.'
+            });
+            return;
+        }
+
         const totalConcluido = Array.isArray(produtos)
             ? produtos.reduce((acc, produto) => {
                 const valor = Number(quantidadesConcluidas[produto.id]);
@@ -240,9 +266,9 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
     ]);
 
     const colunasNotas = buildColumnsWithEllipsis([
-        { field: 'numeroNota', headerName: 'NÃºmero' },
-        { field: 'serie', headerName: 'SÃ©rie' },
-        { field: 'dataEmissao', headerName: 'Data EmissÃ£o' },
+        { field: 'numeroNota', headerName: 'Numero' },
+        { field: 'serie', headerName: 'Série' },
+        { field: 'dataEmissao', headerName: 'Data Emissão' },
         { field: 'valorProdutos', headerName: 'Valor Produtos' },
         { field: 'valorFrete', headerName: 'Valor Frete' },
         { field: 'valorICMS', headerName: 'ICMS' },
@@ -275,10 +301,57 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
         }
     ]);
 
+    const colunasResumoConferencias = buildColumnsWithEllipsis([
+        { field: 'numeroIdentificador', headerName: 'Produto' },
+        { field: 'nomeProduto', headerName: 'Descricao' },
+        { field: 'totalConferencias', headerName: 'Conferencias' },
+        { field: 'finalizadas', headerName: 'Finalizadas' },
+        { field: 'pendentes', headerName: 'Pendentes' },
+        {
+            field: 'finalizadaStatus',
+            headerName: 'Finalizado',
+            renderCell: (row) => (
+                <Chip
+                    size="small"
+                    color={row.finalizadas > 0 ? 'success' : 'warning'}
+                    label={row.finalizadas > 0 ? 'Finalizado' : 'Pendente'}
+                    sx={{ fontWeight: 600 }}
+                />
+            )
+        },
+        { field: 'defeitos', headerName: 'Defeitos' }
+    ]);
+
+    const getConferenciaStatusProduto = (produto) => {
+        const conferenciasProduto = Array.isArray(produto?.conferencias) ? produto.conferencias : [];
+        if (conferenciasProduto.length === 0) {
+            return { label: 'Sem conferencia', color: 'default' };
+        }
+        if (produtoTemConferenciaFinalizada(produto)) {
+            return { label: 'Finalizada', color: 'success' };
+        }
+        return { label: 'Em aberto', color: 'warning' };
+    };
+
     const colunasProdutosFechamento = [
         { field: 'numeroIdentificador', headerName: 'Identificador' },
         { field: 'nomeProduto', headerName: 'Produto' },
         { field: 'quantidadeProduto', headerName: 'Qtd original' },
+        {
+            field: 'conferenciaStatus',
+            headerName: 'Conferencia',
+            renderCell: (row) => {
+                const status = getConferenciaStatusProduto(row);
+                return (
+                    <Chip
+                        size="small"
+                        color={status.color}
+                        label={status.label}
+                        sx={{ fontWeight: 600 }}
+                    />
+                );
+            }
+        },
         {
             field: 'quantidadeConcluida',
             headerName: 'Qtd concluida',
@@ -385,6 +458,37 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
         !finalizadoLocal;
     const isNaoIniciado = !iniciado && !finalizadoLocal;
     const isEmProducao = iniciado && !finalizadoLocal && !isAtrasado;
+    const produtosLista = Array.isArray(produtos) ? produtos : [];
+    const conferencias = produtosLista.flatMap((produto) =>
+        Array.isArray(produto?.conferencias) ? produto.conferencias : []
+    );
+    const temConferenciaPendente = produtosLista.some(
+        (produto) => !produtoTemConferenciaFinalizada(produto)
+    );
+    const totalConferencias = conferencias.length;
+    const totalFinalizadas = conferencias.filter((conferencia) =>
+        isConferenciaFinalizada(conferencia?.finalizada)
+    ).length;
+    const totalPendentes = Math.max(totalConferencias - totalFinalizadas, 0);
+    const totalDefeitos = conferencias.reduce((acc, conferencia) => {
+        const defeitos = Array.isArray(conferencia?.defeitos) ? conferencia.defeitos : [];
+        return acc + defeitos.length;
+    }, 0);
+    const produtosComConferencia = produtosLista.filter((produto) =>
+        Array.isArray(produto?.conferencias) && produto.conferencias.length > 0
+    ).length;
+    const produtosComFinalizada = produtosLista.filter((produto) =>
+        produtoTemConferenciaFinalizada(produto)
+    ).length;
+    const conferenciaStatus = (() => {
+        if (produtosLista.length > 0 && produtosComFinalizada === produtosLista.length) {
+            return { label: 'Conferencia finalizada', bg: '#dcfce7', color: '#166534' };
+        }
+        if (totalConferencias > 0) {
+            return { label: 'Aguardando finalizacao', bg: '#fef9c3', color: '#92400e' };
+        }
+        return { label: 'Sem conferencias', bg: '#e2e8f0', color: '#475569' };
+    })();
     const fechamentoBloqueado = finalizadoLocal;
     const pecasBloqueadas = fechamentoForm.concluido100;
     const totalConcluido = Array.isArray(produtos)
@@ -407,7 +511,7 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
         return { label: 'Em producao', bg: '#dcfce7', color: '#166534' };
     })();
 
-    const etapasConcluidas = finalizadoLocal ? 5 : getEtapasConcluidasFromLote(lote);
+    const etapasConcluidas = finalizadoLocal ? 6 : getEtapasConcluidasFromLote(lote);
 
     const displayDate = (value) => {
         if (!value) return '-';
@@ -422,10 +526,136 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
         { label: 'Entrada', value: displayDate(dataEntrada) },
         { label: 'Saida prevista', value: displayDate(dataPrevistaSaida) },
         { label: 'Inicio', value: displayDate(dataInicio) },
-        { label: 'Produtos', value: produtos?.length ?? 0 },
+        { label: 'Produtos', value: produtosLista.length },
         { label: 'Notas', value: notasFiscais?.length ?? 0 },
         { label: 'Filial', value: idFilial ?? '-' }
     ];
+
+    const produtosResumo = produtosLista.map((produto) => {
+        const confs = Array.isArray(produto?.conferencias) ? produto.conferencias : [];
+        const finalizadas = confs.filter((conferencia) => isConferenciaFinalizada(conferencia?.finalizada)).length;
+        const defeitos = confs.reduce((acc, conferencia) => {
+            const itens = Array.isArray(conferencia?.defeitos) ? conferencia.defeitos : [];
+            return acc + itens.length;
+        }, 0);
+        return {
+            ...produto,
+            totalConferencias: confs.length,
+            finalizadas,
+            pendentes: Math.max(confs.length - finalizadas, 0),
+            defeitos
+        };
+    });
+
+    const renderDetalhesConferencia = (produto) => {
+        const confs = Array.isArray(produto?.conferencias) ? produto.conferencias : [];
+        if (!confs.length) {
+            return (
+                <Typography variant="body2" color="#6b6b6b">
+                    Nenhuma conferencia registrada para este produto.
+                </Typography>
+            );
+        }
+
+        return (
+            <Box sx={{ display: 'grid', gap: 1.5 }}>
+                {confs.map((conferencia) => {
+                    const defeitos = Array.isArray(conferencia?.defeitos) ? conferencia.defeitos : [];
+                    return (
+                        <Box
+                            key={conferencia.id}
+                            sx={{
+                                p: 1.5,
+                                borderRadius: 2,
+                                border: '1px solid #e2e8f0',
+                                backgroundColor: '#fff'
+                            }}
+                        >
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
+                                <Typography variant="subtitle2" color="#0f172a">
+                                    Conferencia #{conferencia.id}
+                                </Typography>
+                                <Typography variant="caption" color="#64748b">
+                                    {conferencia.dataConferencia ? formatarDataHora(conferencia.dataConferencia) : '-'}
+                                </Typography>
+                            </Box>
+
+                            <Box
+                                sx={{
+                                    mt: 1,
+                                    display: 'grid',
+                                    gap: 0.5,
+                                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+                                    color: '#334155'
+                                }}
+                            >
+                                <Typography variant="caption">
+                                    Identificador: {conferencia.identificador || '-'}
+                                </Typography>
+                                <Typography variant="caption">
+                                    Inspecionada: {conferencia.qtdInspecionada ?? 0}
+                                </Typography>
+                                <Typography variant="caption">
+                                    Aprovada: {conferencia.qtdAprovada ?? 0}
+                                </Typography>
+                                <Typography variant="caption">
+                                    Reprovada: {conferencia.qtdReprovada ?? 0}
+                                </Typography>
+                                <Typography variant="caption">
+                                    Status: {conferencia.status || '-'}
+                                </Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                    <Typography variant="caption">Finalizada:</Typography>
+                                    <Chip
+                                        size="small"
+                                        color={isConferenciaFinalizada(conferencia.finalizada) ? 'success' : 'error'}
+                                        label={isConferenciaFinalizada(conferencia.finalizada) ? 'Sim' : 'Nao'}
+                                        sx={{ fontWeight: 600 }}
+                                    />
+                                </Box>
+                            </Box>
+
+                            {conferencia.observacaoGeral && (
+                                <Typography variant="caption" color="#475569" sx={{ mt: 1, display: 'block' }}>
+                                    Observacao: {conferencia.observacaoGeral}
+                                </Typography>
+                            )}
+
+                            <Box sx={{ mt: 1 }}>
+                                <Typography variant="caption" sx={{ fontWeight: 600, color: '#0f172a' }}>
+                                    Defeitos
+                                </Typography>
+                                {defeitos.length ? (
+                                    <Box sx={{ mt: 0.5, display: 'grid', gap: 0.5 }}>
+                                        {defeitos.map((defeito) => (
+                                            <Box key={defeito.id} sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                                <Typography variant="caption">#{defeito.id}</Typography>
+                                                <Typography variant="caption">
+                                                    Tipo: {defeito.tipoDefeito || '-'}
+                                                </Typography>
+                                                <Typography variant="caption">
+                                                    Qtd: {defeito.quantidade ?? 0}
+                                                </Typography>
+                                                {defeito.observacao && (
+                                                    <Typography variant="caption">
+                                                        Observacao: {defeito.observacao}
+                                                    </Typography>
+                                                )}
+                                            </Box>
+                                        ))}
+                                    </Box>
+                                ) : (
+                                    <Typography variant="caption" color="#6b6b6b" sx={{ display: 'block', mt: 0.5 }}>
+                                        Nenhum defeito registrado.
+                                    </Typography>
+                                )}
+                            </Box>
+                        </Box>
+                    );
+                })}
+            </Box>
+        );
+    };
 
     return (
         <Box
@@ -620,7 +850,7 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
                     sx={{
                         display: 'grid',
                         gap: 1.5,
-                        gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)', md: 'repeat(5, 1fr)' }
+                        gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)', md: 'repeat(6, 1fr)' }
                     }}
                 >
                     {etapasDefault.map((etapa, index) => {
@@ -791,7 +1021,102 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
                 </ConfirmInicioLoteModal>
             </Collapse>
 
-            <Collapse in={etapaExpandida === '5 - Finalizado'} timeout={400} unmountOnExit>
+            <Collapse in={etapaExpandida === '5 - Conferencia de qualidade'} timeout={400} unmountOnExit>
+                <Box mt={2} p={2} bgcolor="#f5f5f5" borderRadius={2}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            flexWrap: 'wrap',
+                            gap: 1,
+                            mb: 2
+                        }}
+                    >
+                        <Typography variant="subtitle2" color="#494949">
+                            Resumo de conferencias
+                        </Typography>
+                        <Box
+                            sx={{
+                                px: 1.5,
+                                py: 0.5,
+                                borderRadius: 999,
+                                fontSize: 12,
+                                fontWeight: 600,
+                                backgroundColor: conferenciaStatus.bg,
+                                color: conferenciaStatus.color
+                            }}
+                        >
+                            {conferenciaStatus.label}
+                        </Box>
+                    </Box>
+
+                    <Box
+                        sx={{
+                            display: 'grid',
+                            gap: 1.5,
+                            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+                            mb: 2
+                        }}
+                    >
+                        <Box>
+                            <Typography variant="caption" color="#6b6b6b">Total de conferencias</Typography>
+                            <Typography variant="subtitle2">{totalConferencias}</Typography>
+                        </Box>
+                        <Box>
+                            <Typography variant="caption" color="#6b6b6b">Finalizadas</Typography>
+                            <Typography variant="subtitle2">{totalFinalizadas}</Typography>
+                        </Box>
+                        <Box>
+                            <Typography variant="caption" color="#6b6b6b">Pendentes</Typography>
+                            <Typography variant="subtitle2">{totalPendentes}</Typography>
+                        </Box>
+                        <Box>
+                            <Typography variant="caption" color="#6b6b6b">Produtos conferidos</Typography>
+                            <Typography variant="subtitle2">{produtosComConferencia}</Typography>
+                        </Box>
+                        <Box>
+                            <Typography variant="caption" color="#6b6b6b">Produtos com finalizacao</Typography>
+                            <Typography variant="subtitle2">{produtosComFinalizada}</Typography>
+                        </Box>
+                        <Box>
+                            <Typography variant="caption" color="#6b6b6b">Defeitos registrados</Typography>
+                            <Typography variant="subtitle2">{totalDefeitos}</Typography>
+                        </Box>
+                    </Box>
+
+                    {produtosResumo.length > 0 ? (
+                        <Box>
+                            <Typography variant="subtitle2" color="#494949" sx={{ mb: 1 }}>
+                                Produtos e conferencias
+                            </Typography>
+                            <Typography variant="caption" color="#6b6b6b" sx={{ display: 'block', mb: 1 }}>
+                                Clique na linha para ver detalhes da conferencia e defeitos.
+                            </Typography>
+                            <DataTable
+                                columns={colunasResumoConferencias}
+                                rows={produtosResumo}
+                                pagination={false}
+                                dense
+                                getRowId={(row) => row.id}
+                                onRowClick={(row) => {
+                                    if (!row?.id) return;
+                                    setProdutoExpandidoId((prev) => (prev === row.id ? null : row.id));
+                                }}
+                                expandedRowId={produtoExpandidoId}
+                                renderExpandedRow={renderDetalhesConferencia}
+                                emptyMessage="Nenhum produto encontrado para este lote."
+                            />
+                        </Box>
+                    ) : (
+                        <Typography variant="body2" color="#6b6b6b">
+                            Nenhum produto encontrado para este lote.
+                        </Typography>
+                    )}
+                </Box>
+            </Collapse>
+
+            <Collapse in={etapaExpandida === '6 - Finalizado'} timeout={400} unmountOnExit>
                 <Box mt={2} p={2} bgcolor="#f5f5f5" borderRadius={2}>
                     <Typography variant="subtitle1" color="#2f2f2f" sx={{ mb: 1 }}>
                         Fechamento do lote
@@ -801,6 +1126,12 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
                         <Typography variant="body2" color="#666" sx={{ mb: 2 }}>
                             Este lote ja esta finalizado.
                         </Typography>
+                    )}
+
+                    {temConferenciaPendente && (
+                        <Alert severity="warning" sx={{ mb: 2 }}>
+                            Existem produtos sem conferencia finalizada.
+                        </Alert>
                     )}
 
                     <Box
@@ -869,6 +1200,9 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
                                         type="number"
                                         value={fechamentoForm.acrescimoEntregaPercent}
                                         onChange={(e) => handleFechamentoChange('acrescimoEntregaPercent', e.target.value)}
+                                        InputProps={{
+                                            endAdornment: <InputAdornment position="end">%</InputAdornment>
+                                        }}
                                         inputProps={{ min: 0, step: 0.01 }}
                                         size="small"
                                     />
@@ -912,7 +1246,7 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
                             variant="contained"
                             color="primary"
                             onClick={handleSalvarFechamento}
-                            disabled={salvandoFechamento || fechamentoBloqueado}
+                            disabled={salvandoFechamento || fechamentoBloqueado || temConferenciaPendente}
                         >
                             {salvandoFechamento ? 'Salvando...' : 'Encerrar lote'}
                         </Button>
@@ -928,8 +1262,3 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
 };
 
 export default CardLote;
-
-
-
-
-

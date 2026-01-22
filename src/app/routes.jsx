@@ -24,6 +24,7 @@ const MaquinasMain = Loadable(lazy(() => import("app/views/ativos/maquinas/index
 const PlanoManutencaoMain = Loadable(lazy(() => import("app/views/ativos/planoManutencao/index")));
 const OrdemServicoMain = Loadable(lazy(() => import("app/views/ativos/ordemDeServico")));
 const FavoritosMain = Loadable(lazy(() => import("app/views/favoritos/lista/index")));
+const IntegracaoImapMain = Loadable(lazy(() => import("app/views/integracao/imap")));
 
 
 const routes = [
@@ -57,7 +58,9 @@ const routes = [
 
       { path: "/ativos/maquinas", element: <MaquinasMain />, auth: authRoles.editor },
       { path: "/ativos/planomanutencao", element: <PlanoManutencaoMain />, auth: authRoles.editor },
-      { path: "/ativos/os", element: <OrdemServicoMain />, auth: authRoles.editor }
+      { path: "/ativos/os", element: <OrdemServicoMain />, auth: authRoles.editor },
+
+      { path: "/integracao/imap", element: <IntegracaoImapMain />, auth: authRoles.editor }
     ]
   },
 
