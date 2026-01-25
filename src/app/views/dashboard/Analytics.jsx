@@ -71,6 +71,13 @@ const formatDateTime = (value) => {
   }).format(parsed);
 };
 
+const truncateText = (value, max = 60) => {
+  if (!value) return "-";
+  const text = String(value);
+  if (text.length <= max) return text;
+  return `${text.slice(0, max - 3)}...`;
+};
+
 const normalizeFiltroDate = (value, boundary) => {
   if (!value) return "";
   return `${value} ${boundary === "end" ? "23:59:59" : "00:00:00"}`;
@@ -103,6 +110,10 @@ export default function Analytics() {
   const [notificacoes, setNotificacoes] = useState([]);
   const [loadingNotificacoes, setLoadingNotificacoes] = useState(false);
   const [erroNotificacoes, setErroNotificacoes] = useState("");
+  const [operacao, setOperacao] = useState(null);
+  const [operacaoFiltros, setOperacaoFiltros] = useState(null);
+  const [loadingOperacao, setLoadingOperacao] = useState(false);
+  const [erroOperacao, setErroOperacao] = useState("");
 
   const idCliente = user?.cliente?.id ?? getIdClienteFromToken();
 
@@ -244,6 +255,38 @@ export default function Analytics() {
     };
 
     carregarNotificacoes();
+  }, [idCliente, apiUrl, dataInicio, dataFim]);
+
+  useEffect(() => {
+    if (!idCliente || !apiUrl) return;
+
+    const carregarOperacao = async () => {
+      setLoadingOperacao(true);
+      setErroOperacao("");
+
+      try {
+        const params = new URLSearchParams();
+        params.set("idCliente", String(idCliente));
+        if (dataInicio) params.set("dataEntradaDe", dataInicio);
+        if (dataFim) params.set("dataEntradaAte", dataFim);
+
+        const response = await fetch(`${apiUrl}/dashboard/operacao-alertas?${params.toString()}`);
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(data.mensagem || "Erro ao buscar indicadores de operacao");
+        }
+
+        setOperacao(data);
+        setOperacaoFiltros(data.filtros || null);
+      } catch (error) {
+        setErroOperacao(error?.message || "Erro ao carregar operacao");
+      } finally {
+        setLoadingOperacao(false);
+      }
+    };
+
+    carregarOperacao();
   }, [idCliente, apiUrl, dataInicio, dataFim]);
 
   const cardsInfo = cards || {
@@ -474,6 +517,13 @@ export default function Analytics() {
   const periodoNotificacoes = dataInicio || dataFim
     ? `Filtrado por data de criacao: ${dataInicio || "inicio"} a ${dataFim || "hoje"}`
     : "Ultimas 10 notificacoes do cliente";
+  const operacaoInfo = operacao?.operacao || {};
+  const alertasInfo = operacao?.alertas || {};
+  const lotesPorFilial = operacaoInfo.lotesPorFilial || [];
+  const lotesPorFornecedor = operacaoInfo.lotesPorFornecedor || [];
+  const lotesRiscoAtraso = alertasInfo.lotesRiscoAtraso || [];
+  const lotesRiscoLimitados = lotesRiscoAtraso.slice(0, 10);
+  const notificacoesLimitadas = (notificacoes || []).slice(0, 10);
 
   return (
     <ContentBox className="analytics">
@@ -549,8 +599,8 @@ export default function Analytics() {
       )}
 
       {!loading && (
-        <>
-          <Grid container spacing={3}>
+        <Stack spacing={3}>
+          <Grid container spacing={4}>
             {visibleCards.length === 0 ? (
               <Grid size={{ xs: 12 }}>
                 <Typography variant="body2" color="text.secondary">
@@ -584,7 +634,7 @@ export default function Analytics() {
             )}
           </Grid>
 
-          <Grid container spacing={3} sx={{ mt: 1 }}>
+          <Grid container spacing={4}>
             <Grid size={{ xs: 12, md: 7 }}>
               <Card sx={{ height: "100%" }}>
                 <CardContent>
@@ -620,125 +670,357 @@ export default function Analytics() {
             </Grid>
           </Grid>
 
-          <Card sx={{ mt: 3 }}>
-            <CardContent>
-              <Stack
-                direction={{ xs: "column", sm: "row" }}
-                alignItems={{ xs: "flex-start", sm: "center" }}
-                justifyContent="space-between"
-                spacing={1}
-                sx={{ mb: 2 }}
-              >
-                <Box>
+          <Grid container spacing={4}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Card sx={{ height: "100%" }}>
+                <CardContent>
                   <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                    Ultimas notificacoes
+                    Lotes por filial
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {periodoNotificacoes}
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Distribuicao por unidade
                   </Typography>
-                </Box>
-                <Chip
-                  label={`${notificacoes.length} itens`}
-                  size="small"
-                  sx={{ backgroundColor: alpha(theme.palette.primary.main, 0.1) }}
-                />
-              </Stack>
-
-              {erroNotificacoes && (
-                <Alert severity="error" sx={{ mb: 2 }}>
-                  {erroNotificacoes}
-                </Alert>
-              )}
-
-              {loadingNotificacoes ? (
-                <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-                  <CircularProgress size={22} />
-                </Box>
-              ) : notificacoes.length === 0 ? (
-                <Typography variant="body2" color="text.secondary">
-                  Nenhuma notificacao encontrada para o periodo selecionado.
-                </Typography>
-              ) : (
-                <TableContainer>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell sx={{ width: 56 }} />
-                        <TableCell>Descricao</TableCell>
-                        <TableCell>Tipo</TableCell>
-                        <TableCell>Data</TableCell>
-                        <TableCell align="right">Status</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {notificacoes.map((item) => {
-                        const visual = getNotificacaoVisual(item.tipo);
-                        const Icon = visual.icon;
-                        return (
-                          <TableRow key={item.id} hover>
-                            <TableCell>
-                              <Box
-                                sx={{
-                                  width: 36,
-                                  height: 36,
-                                  borderRadius: "50%",
-                                  backgroundColor: alpha(visual.color, 0.15),
-                                  color: visual.color,
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center"
-                                }}
-                              >
-                                <Icon fontSize="small" />
-                              </Box>
-                            </TableCell>
-                            <TableCell>
-                              <Typography
-                                component={Link}
-                                to={item.url || "#"}
-                                color="text.primary"
-                                sx={{
-                                  textDecoration: "none",
-                                  fontWeight: 600,
-                                  "&:hover": { textDecoration: "underline" }
-                                }}
-                              >
-                                {item.descricao}
-                              </Typography>
-                              <Typography variant="caption" color="text.secondary">
-                                {item.url || "-"}
-                              </Typography>
-                            </TableCell>
-                            <TableCell>
-                              <Chip
-                                size="small"
-                                label={item.tipo || "Geral"}
-                                sx={{
-                                  backgroundColor: alpha(visual.color, 0.1),
-                                  color: visual.color,
-                                  fontWeight: 600
-                                }}
-                              />
-                            </TableCell>
-                            <TableCell>{formatDateTime(item.dataCriacao)}</TableCell>
-                            <TableCell align="right">
-                              <Chip
-                                size="small"
-                                label={Number(item.lido) === 1 ? "Lido" : "Novo"}
-                                color={Number(item.lido) === 1 ? "success" : "warning"}
-                                variant={Number(item.lido) === 1 ? "outlined" : "filled"}
-                              />
-                            </TableCell>
+                  {loadingOperacao ? (
+                    <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
+                      <CircularProgress size={22} />
+                    </Box>
+                  ) : erroOperacao ? (
+                    <Alert severity="error">{erroOperacao}</Alert>
+                  ) : lotesPorFilial.length === 0 ? (
+                    <Typography variant="body2" color="text.secondary">
+                      Nenhum lote encontrado no periodo.
+                    </Typography>
+                  ) : (
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Filial</TableCell>
+                          <TableCell align="right">Total</TableCell>
+                          <TableCell align="right">Em producao</TableCell>
+                          <TableCell align="right">Finalizados</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {lotesPorFilial.map((item) => (
+                          <TableRow key={item.idFilial} hover>
+                            <TableCell>{item.nomeFilial || `Filial ${item.idFilial}`}</TableCell>
+                            <TableCell align="right">{formatNumber(item.totalLotes)}</TableCell>
+                            <TableCell align="right">{formatNumber(item.lotesEmProducao)}</TableCell>
+                            <TableCell align="right">{formatNumber(item.lotesFinalizados)}</TableCell>
                           </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              )}
-            </CardContent>
-          </Card>
-        </>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Card sx={{ height: "100%" }}>
+                <CardContent>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                    Lotes por fornecedor
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Top fornecedores no periodo
+                  </Typography>
+                  {loadingOperacao ? (
+                    <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
+                      <CircularProgress size={22} />
+                    </Box>
+                  ) : erroOperacao ? (
+                    <Alert severity="error">{erroOperacao}</Alert>
+                  ) : lotesPorFornecedor.length === 0 ? (
+                    <Typography variant="body2" color="text.secondary">
+                      Nenhum fornecedor encontrado no periodo.
+                    </Typography>
+                  ) : (
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Fornecedor</TableCell>
+                          <TableCell align="right">Total</TableCell>
+                          <TableCell align="right">Em producao</TableCell>
+                          <TableCell align="right">Finalizados</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {lotesPorFornecedor.map((item) => (
+                          <TableRow key={item.idFornecedor || item.nomeFornecedor} hover>
+                            <TableCell>{item.nomeFornecedor}</TableCell>
+                            <TableCell align="right">{formatNumber(item.totalLotes)}</TableCell>
+                            <TableCell align="right">{formatNumber(item.lotesEmProducao)}</TableCell>
+                            <TableCell align="right">{formatNumber(item.lotesFinalizados)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+
+          <Grid container spacing={4}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Card sx={{ height: "100%" }}>
+                <CardContent>
+                  <Stack
+                    direction={{ xs: "column", sm: "row" }}
+                    alignItems={{ xs: "flex-start", sm: "center" }}
+                    justifyContent="space-between"
+                    spacing={1}
+                    sx={{ mb: 2 }}
+                  >
+                    <Box>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                        Alertas de prazo
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Lotes com risco ou atraso no periodo
+                      </Typography>
+                    </Box>
+                    <Chip
+                      label={`${lotesRiscoLimitados.length} itens`}
+                      size="small"
+                      sx={{ backgroundColor: alpha(theme.palette.error.main, 0.1) }}
+                    />
+                  </Stack>
+
+                  {loadingOperacao ? (
+                    <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
+                      <CircularProgress size={22} />
+                    </Box>
+                  ) : erroOperacao ? (
+                    <Alert severity="error">{erroOperacao}</Alert>
+                  ) : lotesRiscoLimitados.length === 0 ? (
+                    <Typography variant="body2" color="text.secondary">
+                      Nenhum lote em risco ou atraso no periodo.
+                    </Typography>
+                  ) : (
+                    <TableContainer>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>Lote</TableCell>
+                            <TableCell>Filial</TableCell>
+                            <TableCell>Fornecedor</TableCell>
+                            <TableCell>Previsto</TableCell>
+                            <TableCell align="right">Status</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {lotesRiscoLimitados.map((item) => {
+                            const statusColor =
+                              item.status === "atrasado" ? theme.palette.error.main : theme.palette.warning.main;
+                            return (
+                              <TableRow key={item.id} hover sx={{ height: 52 }}>
+                                <TableCell sx={{ maxWidth: 200 }}>
+                                  <Typography
+                                    component={Link}
+                                    to={"/lotes/lotesacompanhamento"}
+                                    color="text.primary"
+                                    sx={{
+                                      textDecoration: "none",
+                                      fontWeight: 600,
+                                      "&:hover": { textDecoration: "underline" },
+                                      display: "block",
+                                      maxWidth: 200,
+                                      whiteSpace: "nowrap",
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis"
+                                    }}
+                                  >
+                                    {truncateText(item.numeroIdentificador, 40)}
+                                  </Typography>
+                                </TableCell>
+                                <TableCell sx={{ maxWidth: 160 }}>
+                                  <Typography
+                                    sx={{
+                                      display: "block",
+                                      maxWidth: 160,
+                                      whiteSpace: "nowrap",
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis"
+                                    }}
+                                  >
+                                    {truncateText(item.nomeFilial || "-", 30)}
+                                  </Typography>
+                                </TableCell>
+                                <TableCell sx={{ maxWidth: 200 }}>
+                                  <Typography
+                                    sx={{
+                                      display: "block",
+                                      maxWidth: 200,
+                                      whiteSpace: "nowrap",
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis"
+                                    }}
+                                  >
+                                    {truncateText(item.nomeFornecedor || "-", 36)}
+                                  </Typography>
+                                </TableCell>
+                                <TableCell>{formatDateTime(item.dataPrevistaSaida)}</TableCell>
+                                <TableCell align="right">
+                                  <Chip
+                                    size="small"
+                                    label={item.status === "atrasado" ? "Atrasado" : "Risco"}
+                                    sx={{
+                                      backgroundColor: alpha(statusColor, 0.15),
+                                      color: statusColor,
+                                      fontWeight: 600
+                                    }}
+                                  />
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Card sx={{ height: "100%" }}>
+                <CardContent>
+                  <Stack
+                    direction={{ xs: "column", sm: "row" }}
+                    alignItems={{ xs: "flex-start", sm: "center" }}
+                    justifyContent="space-between"
+                    spacing={1}
+                    sx={{ mb: 2 }}
+                  >
+                    <Box>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                        Ultimas notificacoes
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {periodoNotificacoes}
+                      </Typography>
+                    </Box>
+                    <Chip
+                      label={`${notificacoesLimitadas.length} itens`}
+                      size="small"
+                      sx={{ backgroundColor: alpha(theme.palette.primary.main, 0.1) }}
+                    />
+                  </Stack>
+
+                  {erroNotificacoes && (
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                      {erroNotificacoes}
+                    </Alert>
+                  )}
+
+                  {loadingNotificacoes ? (
+                    <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                      <CircularProgress size={22} />
+                    </Box>
+                  ) : notificacoesLimitadas.length === 0 ? (
+                    <Typography variant="body2" color="text.secondary">
+                      Nenhuma notificacao encontrada para o periodo selecionado.
+                    </Typography>
+                  ) : (
+                    <TableContainer>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell sx={{ width: 56 }} />
+                            <TableCell>Descricao</TableCell>
+                            <TableCell>Tipo</TableCell>
+                            <TableCell>Data</TableCell>
+                            <TableCell align="right">Status</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {notificacoesLimitadas.map((item) => {
+                            const visual = getNotificacaoVisual(item.tipo);
+                            const Icon = visual.icon;
+                            return (
+                              <TableRow key={item.id} hover sx={{ height: 52 }}>
+                                <TableCell>
+                                  <Box
+                                    sx={{
+                                      width: 36,
+                                      height: 36,
+                                      borderRadius: "50%",
+                                      backgroundColor: alpha(visual.color, 0.15),
+                                      color: visual.color,
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center"
+                                    }}
+                                  >
+                                    <Icon fontSize="small" />
+                                  </Box>
+                                </TableCell>
+                                <TableCell sx={{ maxWidth: 320 }}>
+                                  <Typography
+                                    component={Link}
+                                    to={item.url || "#"}
+                                    color="text.primary"
+                                    sx={{
+                                      textDecoration: "none",
+                                      fontWeight: 600,
+                                      "&:hover": { textDecoration: "underline" },
+                                      display: "block",
+                                      maxWidth: 320,
+                                      whiteSpace: "nowrap",
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis"
+                                    }}
+                                  >
+                                    {truncateText(item.descricao, 60)}
+                                  </Typography>
+                                  <Typography
+                                    variant="caption"
+                                    color="text.secondary"
+                                    sx={{
+                                      display: "block",
+                                      maxWidth: 320,
+                                      whiteSpace: "nowrap",
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis"
+                                    }}
+                                  >
+                                    {truncateText(item.url || "-", 50)}
+                                  </Typography>
+                                </TableCell>
+                                <TableCell>
+                                  <Chip
+                                    size="small"
+                                    label={item.tipo || "Geral"}
+                                    sx={{
+                                      backgroundColor: alpha(visual.color, 0.1),
+                                      color: visual.color,
+                                      fontWeight: 600
+                                    }}
+                                  />
+                                </TableCell>
+                                <TableCell>{formatDateTime(item.dataCriacao)}</TableCell>
+                                <TableCell align="right">
+                                  <Chip
+                                    size="small"
+                                    label={Number(item.lido) === 1 ? "Lido" : "Novo"}
+                                    color={Number(item.lido) === 1 ? "success" : "warning"}
+                                    variant={Number(item.lido) === 1 ? "outlined" : "filled"}
+                                  />
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        </Stack>
       )}
 
       <Dialog open={cardsModalOpen} onClose={() => setCardsModalOpen(false)} maxWidth="xs" fullWidth>
