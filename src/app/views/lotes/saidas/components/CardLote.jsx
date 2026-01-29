@@ -30,6 +30,12 @@ const produtoTemConferenciaFinalizada = (produto) =>
     Array.isArray(produto?.conferencias) &&
     produto.conferencias.some((conferencia) => isConferenciaFinalizada(conferencia?.finalizada));
 
+const isProdutoAtivo = (produto) => {
+    const ativo = produto?.ativo;
+    if (ativo === undefined || ativo === null) return true;
+    return !(ativo === 0 || ativo === false || ativo === '0');
+};
+
 const temConferenciaFinalizada = (lote) => {
     const produtos = Array.isArray(lote?.produtos) ? lote.produtos : [];
     if (!produtos.length) return false;
@@ -154,7 +160,32 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
     };
 
     const handleQuantidadeConcluida = (produtoId, value) => {
-        setQuantidadesConcluidas((prev) => ({ ...prev, [produtoId]: value }));
+        const lista = Array.isArray(produtos) ? produtos : [];
+        const produto = lista.find((item) => item?.id === produtoId);
+        const maxQtd = produto?.quantidadeProduto;
+
+        if (value === '') {
+            setQuantidadesConcluidas((prev) => ({ ...prev, [produtoId]: value }));
+            return;
+        }
+
+        let numeric = Number(value);
+        if (!Number.isFinite(numeric)) {
+            return;
+        }
+        if (numeric < 0) numeric = 0;
+
+        if (maxQtd !== null && maxQtd !== undefined && Number.isFinite(Number(maxQtd)) && numeric > Number(maxQtd)) {
+            numeric = Number(maxQtd);
+            setSnackbar({
+                open: true,
+                message: 'Quantidade concluida nao pode ser maior que a quantidade do produto.',
+                severity: 'warning',
+                mensagem: 'Quantidade concluida nao pode ser maior que a quantidade do produto.'
+            });
+        }
+
+        setQuantidadesConcluidas((prev) => ({ ...prev, [produtoId]: numeric }));
     };
 
     const handleSalvarFechamento = async () => {
@@ -178,12 +209,28 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
             return;
         }
 
-        const totalConcluido = Array.isArray(produtos)
-            ? produtos.reduce((acc, produto) => {
+        const produtosAtivos = Array.isArray(produtos)
+            ? produtos.filter((produto) => isProdutoAtivo(produto))
+            : [];
+        const totalConcluido = produtosAtivos.reduce((acc, produto) => {
                 const valor = Number(quantidadesConcluidas[produto.id]);
                 return acc + (Number.isFinite(valor) ? valor : 0);
-            }, 0)
-            : 0;
+            }, 0);
+        const totalQuantidadeOriginal = produtosAtivos.reduce((acc, produto) => {
+            const qtd = Number(produto?.quantidadeProduto);
+            return acc + (Number.isFinite(qtd) ? qtd : 0);
+        }, 0);
+
+        if (totalConcluido > totalQuantidadeOriginal) {
+            setSnackbar({
+                open: true,
+                message: 'Quantidade concluida nao pode ser maior que a quantidade total do lote.',
+                severity: 'warning',
+                mensagem: 'Quantidade concluida nao pode ser maior que a quantidade total do lote.'
+            });
+            setSalvandoFechamento(false);
+            return;
+        }
 
         setSalvandoFechamento(true);
         try {
@@ -251,6 +298,22 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
         { field: 'valorPorPeca', headerName: 'Valor Unitário' },
         { field: 'someValorTotalProduto', headerName: 'Valor Total' },
         {
+            field: 'ativoStatus',
+            headerName: 'Status',
+            renderCell: (row) => (
+                row?.ativo === 0 || row?.ativo === '0' || row?.ativo === false ? (
+                    <Chip
+                        label="Inativo"
+                        size="small"
+                        variant="outlined"
+                        sx={{ color: '#b91c1c', borderColor: '#fecaca', fontWeight: 600, backgroundColor: '#fef2f2' }}
+                    />
+                ) : (
+                    <Typography variant="caption" sx={{ color: '#94a3b8' }}>-</Typography>
+                )
+            )
+        },
+        {
             field: 'detalhes',
             headerName: 'Detalhes',
             renderCell: (row) => (
@@ -279,13 +342,13 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
     ]);
 
     const colunasLote = buildColumnsWithEllipsis([
-        { field: 'numeroIdentificador', headerName: 'IdentificaÃ§Ã£o' },
+        { field: 'numeroIdentificador', headerName: 'Identificação' },
         { field: 'nomeEntregador', headerName: 'Entregador' },
         { field: 'nomeRecebedor', headerName: 'Recebedor' },
         { field: 'valorEstimado', headerName: 'Valor Estimado' },
         { field: 'valorHoraEstimado', headerName: 'Valor Hora' },
         { field: 'dataEntrada', headerName: 'Entrada' },
-        { field: 'dataPrevistaSaida', headerName: 'SaÃ­da Prevista' },
+        { field: 'dataPrevistaSaida', headerName: 'Saída Prevista' },
         {
             field: 'detalhes',
             headerName: 'Detalhes',
@@ -459,10 +522,11 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
     const isNaoIniciado = !iniciado && !finalizadoLocal;
     const isEmProducao = iniciado && !finalizadoLocal && !isAtrasado;
     const produtosLista = Array.isArray(produtos) ? produtos : [];
+    const produtosAtivos = produtosLista.filter((produto) => isProdutoAtivo(produto));
     const conferencias = produtosLista.flatMap((produto) =>
         Array.isArray(produto?.conferencias) ? produto.conferencias : []
     );
-    const temConferenciaPendente = produtosLista.some(
+    const temConferenciaPendente = produtosAtivos.some(
         (produto) => !produtoTemConferenciaFinalizada(produto)
     );
     const totalConferencias = conferencias.length;
@@ -491,12 +555,10 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
     })();
     const fechamentoBloqueado = finalizadoLocal;
     const pecasBloqueadas = fechamentoForm.concluido100;
-    const totalConcluido = Array.isArray(produtos)
-        ? produtos.reduce((acc, produto) => {
-            const valor = Number(quantidadesConcluidas[produto.id]);
-            return acc + (Number.isFinite(valor) ? valor : 0);
-        }, 0)
-        : 0;
+    const totalConcluido = produtosAtivos.reduce((acc, produto) => {
+        const valor = Number(quantidadesConcluidas[produto.id]);
+        return acc + (Number.isFinite(valor) ? valor : 0);
+    }, 0);
 
     const statusTag = (() => {
         if (finalizadoLocal) {
@@ -775,7 +837,7 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
                 autoHideDuration={4000}
                 onClose={() => setSnackbar({ ...snackbar, open: false })}
                 message={snackbar.message}
-                sx={{ zIndex: (theme) => theme.zIndex.modal + 10 }}
+                sx={{ mt: 8, zIndex: (theme) => theme.zIndex.modal + 10 }}
             >
                 <Alert severity={snackbar.severity} sx={{ width: '100%' }} variant="filled">
                     {snackbar.mensagem}
@@ -1229,7 +1291,7 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
                                     </Box>
                                     <DataTable
                                         columns={colunasProdutosFechamento}
-                                        rows={produtos || []}
+                                        rows={produtosAtivos}
                                         pagination={false}
                                         dense
                                     />

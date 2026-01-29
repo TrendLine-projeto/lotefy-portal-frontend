@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Box, Typography, Grid, Divider, Tooltip, Dialog, DialogTitle, DialogContent, CircularProgress, DialogActions, Button, Chip } from '@mui/material';
-import { FaPen, FaBoxOpen, FaFileAlt, FaPowerOff, FaFlagCheckered } from 'react-icons/fa';
+import { Box, Typography, Grid, Divider, Tooltip, Dialog, DialogTitle, DialogContent, CircularProgress, DialogActions, Button, Chip, Checkbox } from '@mui/material';
+import { FaPen, FaBoxOpen, FaFileAlt, FaPowerOff, FaFlagCheckered, FaCloudDownloadAlt } from 'react-icons/fa';
 import { RiTimerFill } from "react-icons/ri"
 import { IconsCardDefault } from '../../../../utils/constant';
 import { buildColumnsWithEllipsis } from '../../../../utils/buildColumns';
@@ -42,7 +42,7 @@ const getEtapasConcluidasFromLote = (lote) => {
     return 4;
 };
 
-const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
+const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote, onDesativarProduto, onAtivarProduto }) => {
     const apiUrl = import.meta.env.VITE_API_URL;
     const [etapaExpandida, setEtapaExpandida] = useState(null);
     const [produtoExpandidoId, setProdutoExpandidoId] = useState(null);
@@ -52,6 +52,12 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
     const [detalhesLote, setDetalhesLote] = useState(null);
     const [salvando, setSalvando] = useState(false);
     const [openModal, setOpenModal] = useState(false);
+    const [confirmDesativar, setConfirmDesativar] = useState({
+        open: false,
+        produto: null,
+        loading: false,
+        acao: 'desativar'
+    });
     const etapasDefault = ['1 - Lote', '2 - Produtos', '3 - NF-e', '4 - Status', '5 - Conferencia de qualidade', '6 - Finalizado'];
     const {
         id: loteId,
@@ -78,6 +84,7 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
         severity: '',
         mensagem: ''
     });
+    const integracaoExterna = Boolean(lote?.integracaoExterna ?? lote?.integracao_externa);
 
     const handleAbrirDetalhes = async (id) => {
         try {
@@ -115,6 +122,33 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
 
     const etapasConcluidas = getEtapasConcluidasFromLote(lote);
 
+    const isProdutoInativo = (produto) =>
+        produto?.ativo === 0 ||
+        produto?.ativo === '0' ||
+        produto?.ativo === false;
+
+    const abrirConfirmDesativar = (produto, acao) => {
+        setConfirmDesativar({ open: true, produto, loading: false, acao });
+    };
+
+    const fecharConfirmDesativar = () => {
+        if (confirmDesativar.loading) return;
+        setConfirmDesativar({ open: false, produto: null, loading: false, acao: 'desativar' });
+    };
+
+    const confirmarDesativar = async () => {
+        const produto = confirmDesativar.produto;
+        if (!produto) return;
+        setConfirmDesativar((prev) => ({ ...prev, loading: true }));
+        const ok = confirmDesativar.acao === 'ativar'
+            ? await onAtivarProduto?.(produto)
+            : await onDesativarProduto?.(produto);
+        setConfirmDesativar((prev) => ({ ...prev, loading: false }));
+        if (ok) {
+            setConfirmDesativar({ open: false, produto: null, loading: false, acao: 'desativar' });
+        }
+    };
+
     const colunasProdutos = buildColumnsWithEllipsis([
         { field: 'numeroIdentificador', headerName: 'Identificador' },
         { field: 'nomeProduto', headerName: 'Produto' },
@@ -125,6 +159,24 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
         { field: 'quantidadeProduto', headerName: 'Qtd' },
         { field: 'valorPorPeca', headerName: 'Valor Unitário' },
         { field: 'someValorTotalProduto', headerName: 'Valor Total' },
+        {
+            field: 'desativar',
+            headerName: 'Desativar',
+            renderCell: (row) => {
+                const inativo = isProdutoInativo(row);
+                return (
+                    <Checkbox
+                        size="small"
+                        checked={inativo}
+                        disabled={confirmDesativar.loading}
+                        onChange={(e) => {
+                            e.stopPropagation();
+                            abrirConfirmDesativar(row, inativo ? 'ativar' : 'desativar');
+                        }}
+                    />
+                );
+            }
+        },
         {
             field: 'detalhes',
             headerName: 'Detalhes',
@@ -140,6 +192,54 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
         }
     ]);
 
+    const baixarNotaFiscalPdf = async (nota) => {
+        if (!nota?.id) {
+            setSnackbar({
+                open: true,
+                message: 'Nota fiscal invalida.',
+                severity: 'error',
+                mensagem: 'Nota fiscal invalida.'
+            });
+            return;
+        }
+
+        try {
+            const res = await fetch(`${apiUrl}/integration/gmail/nota_fiscal/${nota.id}/pdf`);
+            const contentType = res.headers.get('Content-Type') || '';
+            if (!res.ok || !contentType.includes('application/pdf')) {
+                const erro = await res.text().catch(() => '');
+                setSnackbar({
+                    open: true,
+                    message: erro || 'Nao foi possivel baixar o PDF.',
+                    severity: 'error',
+                    mensagem: erro || 'Nao foi possivel baixar o PDF.'
+                });
+                return;
+            }
+
+            const blob = await res.blob();
+            const fallbackName = `NF-${nota.chaveAcesso || nota.id}.pdf`;
+            const contentDisposition = res.headers.get('Content-Disposition') || '';
+            const match = contentDisposition.match(/filename=\"?([^\";]+)\"?/i);
+            const filename = match?.[1] || fallbackName;
+
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            URL.revokeObjectURL(link.href);
+            link.remove();
+        } catch (error) {
+            setSnackbar({
+                open: true,
+                message: 'Erro ao baixar o PDF.',
+                severity: 'error',
+                mensagem: 'Erro ao baixar o PDF.'
+            });
+        }
+    };
+
     const colunasNotas = buildColumnsWithEllipsis([
         { field: 'numeroNota', headerName: 'Número' },
         { field: 'serie', headerName: 'Série' },
@@ -150,7 +250,20 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
         { field: 'valorIPI', headerName: 'IPI' },
         { field: 'transportadora', headerName: 'Transportadora' },
         { field: 'qtdVolumes', headerName: 'Volumes' },
-        { field: 'pesoBruto', headerName: 'Peso Bruto' }
+        { field: 'pesoBruto', headerName: 'Peso Bruto' },
+        {
+            field: 'baixarXml',
+            headerName: 'Baixar NF',
+            renderCell: (row) => (
+                <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => baixarNotaFiscalPdf(row)}
+                >
+                    Baixar NF
+                </Button>
+            )
+        }
     ]);
 
     const colunasLote = buildColumnsWithEllipsis([
@@ -440,6 +553,36 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
         );
     };
 
+    const infoItems = [
+        { label: 'Identificação', value: numeroIdentificador },
+        { label: 'CNPJ', value: fornecedor?.cnpj },
+        { label: 'Razão social', value: fornecedor?.razaoSocial },
+        { label: 'Data de criação', value: dataEntrada ? formatarDataHora(dataEntrada) : '-' },
+        { label: 'Valor Estimado', value: `R$ ${valorEstimado}` },
+        { label: 'Nome do Recebedor', value: nomeRecebedor },
+        { label: 'Início', value: dataInicio ? formatarDataHora(dataInicio) : 'Não iniciado' },
+        { label: 'Data de Saída', value: dataPrevistaSaida ? formatarDataHora(dataPrevistaSaida) : '-' }
+    ];
+
+    if (integracaoExterna) {
+        infoItems.push({
+            label: 'Origem',
+            value: (
+                <Chip
+                    icon={<FaCloudDownloadAlt size={14} />}
+                    label="Integracao externa"
+                    size="small"
+                    sx={{
+                        background: 'linear-gradient(90deg, #0ea5e9 0%, #38bdf8 100%)',
+                        color: '#fff',
+                        fontWeight: 600,
+                        '.MuiChip-icon': { color: '#fff' }
+                    }}
+                />
+            )
+        });
+    }
+
     return (
         <Box sx={{ mt: 5, mb: 4, p: 3, borderRadius: 2, boxShadow: 2, backgroundColor: '#fff', minHeight: '200px' }}>
 
@@ -449,16 +592,7 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
                     overdue={isAtrasado}
                     notStarted={isNaoIniciado}
                     inProduction={isEmProducao}
-                    items={[
-                        { label: 'Identificação', value: numeroIdentificador },
-                        { label: 'CNPJ', value: fornecedor?.cnpj },
-                        { label: 'Razão social', value: fornecedor?.razaoSocial },
-                        { label: 'Data de criação', value: dataEntrada ? formatarDataHora(dataEntrada) : '-' },
-                        { label: 'Valor Estimado', value: `R$ ${valorEstimado}` },
-                        { label: 'Nome do Recebedor', value: nomeRecebedor },
-                        { label: 'Início', value: dataInicio ? formatarDataHora(dataInicio) : 'Não iniciado' },
-                        { label: 'Data de Saída', value: dataPrevistaSaida ? formatarDataHora(dataPrevistaSaida) : '-' }
-                    ]}
+                    items={infoItems}
                 />
             </Box>
 
@@ -473,6 +607,32 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
                     {snackbar.mensagem}
                 </Alert>
             </Snackbar>
+
+            <Dialog open={confirmDesativar.open} onClose={fecharConfirmDesativar}>
+                <DialogTitle>
+                    {confirmDesativar.acao === 'ativar' ? 'Ativar produto' : 'Desativar produto'}
+                </DialogTitle>
+                <DialogContent>
+                    Tem certeza que deseja {confirmDesativar.acao === 'ativar' ? 'ativar' : 'desativar'} o produto{' '}
+                    <strong>{confirmDesativar.produto?.nomeProduto || `#${confirmDesativar.produto?.id}`}</strong>?
+                    <br />
+                    O valor estimado do lote sera recalculado.
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={fecharConfirmDesativar} disabled={confirmDesativar.loading}>
+                        Cancelar
+                    </Button>
+                    <Button
+                        onClick={confirmarDesativar}
+                        color={confirmDesativar.acao === 'ativar' ? 'primary' : 'error'}
+                        variant="contained"
+                        disabled={confirmDesativar.loading}
+                        startIcon={confirmDesativar.loading ? <CircularProgress size={16} /> : null}
+                    >
+                        {confirmDesativar.acao === 'ativar' ? 'Ativar' : 'Desativar'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
             <ModalInformacoesProduto
                 open={modalAberto}
@@ -870,6 +1030,8 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote }) => {
 };
 
 export default CardLote;
+
+
 
 
 

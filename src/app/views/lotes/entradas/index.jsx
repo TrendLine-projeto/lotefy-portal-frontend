@@ -6,6 +6,7 @@ import { Paper } from '@mui/material';
 import { Snackbar, Alert } from "@mui/material";
 import styled from "@mui/material/styles/styled";
 import Box from "@mui/material/Box";
+import { toNumber } from "app/utils/lotePayload";
 
 
 // ImportaÃ§Ã£o das etapas
@@ -159,8 +160,13 @@ export default function LotesEntradas() {
     const enviarLoteParaAPI = async () => {
 
         const valorEstimado = dados.produtos.reduce((soma, produto) => {
-            const total = parseFloat(produto.someValorTotalProduto);
-            return soma + (!isNaN(total) ? total : 0);
+            const totalInformado = toNumber(produto?.someValorTotalProduto);
+            if (totalInformado !== null && totalInformado !== undefined && !Number.isNaN(totalInformado)) {
+                return soma + totalInformado;
+            }
+            const valorPorPeca = toNumber(produto?.valorPorPeca) ?? 0;
+            const quantidade = toNumber(produto?.quantidadeProduto) ?? 0;
+            return soma + (valorPorPeca * quantidade);
         }, 0);
 
         const payload = {

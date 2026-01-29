@@ -315,14 +315,136 @@ export default function LoteCompanhamentoMain() {
         }
     };
 
+    const desativarProduto = async (produto) => {
+        try {
+            const produtoId = produto?.id;
+            if (!produtoId) {
+                setSnackbar({
+                    open: true,
+                    message: 'Produto invalido para desativar!',
+                    severity: 'error',
+                    mensagem: 'Produto invalido para desativar!',
+                });
+                return false;
+            }
+
+            const res = await fetch(
+                `${apiUrl}/produtorProducao/produtos_producao/desativar/${produtoId}`,
+                { method: 'PUT' }
+            );
+
+            if (!res.ok) {
+                const errTxt = await res.text().catch(() => '');
+                console.error('Erro ao desativar produto', errTxt);
+                setSnackbar({
+                    open: true,
+                    message: 'Erro ao desativar produto!',
+                    severity: 'error',
+                    mensagem: 'Erro ao desativar produto!',
+                });
+                return false;
+            }
+
+            await res.json().catch(() => ({}));
+
+            setSnackbar({
+                open: true,
+                message: 'Produto desativado com sucesso!',
+                severity: 'success',
+                mensagem: 'Produto desativado com sucesso!',
+            });
+
+            await fetchData();
+
+            const loteIdDoProduto = produto?.idEntrada_lotes;
+            if (dadosSelecionado?.id && loteIdDoProduto === dadosSelecionado.id) {
+                const r = await fetch(`${apiUrl}/lotes/entrada_lotes/${dadosSelecionado.id}`);
+                const j = await r.json();
+                setDadosSelecionado(j.lote);
+            }
+
+            return true;
+        } catch (err) {
+            console.error('Erro na requisiÃ§Ã£o:', err);
+            setSnackbar({
+                open: true,
+                message: 'Erro ao desativar produto!',
+                severity: 'error',
+                mensagem: 'Erro ao desativar produto!',
+            });
+            return false;
+        }
+    };
+
+    const ativarProduto = async (produto) => {
+        try {
+            const produtoId = produto?.id;
+            if (!produtoId) {
+                setSnackbar({
+                    open: true,
+                    message: 'Produto invalido para ativar!',
+                    severity: 'error',
+                    mensagem: 'Produto invalido para ativar!',
+                });
+                return false;
+            }
+
+            const res = await fetch(
+                `${apiUrl}/produtorProducao/produtos_producao/ativar/${produtoId}`,
+                { method: 'PUT' }
+            );
+
+            if (!res.ok) {
+                const errTxt = await res.text().catch(() => '');
+                console.error('Erro ao ativar produto', errTxt);
+                setSnackbar({
+                    open: true,
+                    message: 'Erro ao ativar produto!',
+                    severity: 'error',
+                    mensagem: 'Erro ao ativar produto!',
+                });
+                return false;
+            }
+
+            await res.json().catch(() => ({}));
+
+            setSnackbar({
+                open: true,
+                message: 'Produto ativado com sucesso!',
+                severity: 'success',
+                mensagem: 'Produto ativado com sucesso!',
+            });
+
+            await fetchData();
+
+            const loteIdDoProduto = produto?.idEntrada_lotes;
+            if (dadosSelecionado?.id && loteIdDoProduto === dadosSelecionado.id) {
+                const r = await fetch(`${apiUrl}/lotes/entrada_lotes/${dadosSelecionado.id}`);
+                const j = await r.json();
+                setDadosSelecionado(j.lote);
+            }
+
+            return true;
+        } catch (err) {
+            console.error('Erro na requisiÃ§Ã£o:', err);
+            setSnackbar({
+                open: true,
+                message: 'Erro ao ativar produto!',
+                severity: 'error',
+                mensagem: 'Erro ao ativar produto!',
+            });
+            return false;
+        }
+    };
+
     useEffect(() => {
         fetchData();
     }, [pagination.page, pagination.perPage]);
 
     const fields = [
-        { name: 'numeroIdentificador', label: 'Numero de identificaÃ§Ã£o', type: 'text', placeholder: '' },
+        { name: 'numeroIdentificador', label: 'Numero de identificação', type: 'text', placeholder: '' },
         { name: 'dataEntrada', label: 'Data de entrada', type: 'date', placeholder: '' },
-        { name: 'dataPrevistaSaida', label: 'Data de saÃ­da', type: 'date', placeholder: '' },
+        { name: 'dataPrevistaSaida', label: 'Data de saída', type: 'date', placeholder: '' },
         { name: 'valorEstimado', label: 'Valor', type: 'text', placeholder: 'R$' },
         { name: 'loteIniciado', label: 'Iniciado / Finalizado', type: 'checkbox' }
     ];
@@ -413,9 +535,26 @@ export default function LoteCompanhamentoMain() {
             </Snackbar>
 
             {dadosSelecionado ? (
-                <CardLote lote={dadosSelecionado} onIniciarLote={iniciarLote} onSalvarProduto={salvarProduto} onSalvarLote={salvarLote} />
+                <CardLote
+                    lote={dadosSelecionado}
+                    onIniciarLote={iniciarLote}
+                    onSalvarProduto={salvarProduto}
+                    onSalvarLote={salvarLote}
+                    onDesativarProduto={desativarProduto}
+                    onAtivarProduto={ativarProduto}
+                />
             ) : (
-                data.map((lote) => <CardLote key={lote.id} lote={lote} onIniciarLote={iniciarLote} onSalvarProduto={salvarProduto} onSalvarLote={salvarLote} />)
+                data.map((lote) => (
+                    <CardLote
+                        key={lote.id}
+                        lote={lote}
+                        onIniciarLote={iniciarLote}
+                        onSalvarProduto={salvarProduto}
+                        onSalvarLote={salvarLote}
+                        onDesativarProduto={desativarProduto}
+                        onAtivarProduto={ativarProduto}
+                    />
+                ))
             )}
 
             <ConfirmDialog

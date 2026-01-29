@@ -24,6 +24,7 @@ const MaquinasMain = Loadable(lazy(() => import("app/views/ativos/maquinas/index
 const PlanoManutencaoMain = Loadable(lazy(() => import("app/views/ativos/planoManutencao/index")));
 const OrdemServicoMain = Loadable(lazy(() => import("app/views/ativos/ordemDeServico")));
 const FavoritosMain = Loadable(lazy(() => import("app/views/favoritos/lista/index")));
+const UsuarioMain = Loadable(lazy(() => import("app/views/usuario/index")));
 const IntegracaoImapMain = Loadable(lazy(() => import("app/views/integracao/imap")));
 
 
@@ -51,10 +52,10 @@ const routes = [
       { path: "/lotes/lotesentradas", element: <LotesEntradas />, auth: authRoles.editor },
       { path: "/lotes/lotessaidas", element: <LoteSaidaMain />, auth: authRoles.editor },
       { path: "/lotes/lotesacompanhamento", element: <LoteCompanhamentoMain />, auth: authRoles.editor },
-      { path: "/lotes/loteemproducao", element: <LoteCompanhamentoMain />, auth: authRoles.editor },
       { path: "/lotes/conferenciaqualidade", element: <ConferenciaQualidadeMain />, auth: authRoles.editor },
 
       { path: "/favoritos", element: <FavoritosMain />, auth: authRoles.editor },
+      { path: "/usuario", element: <UsuarioMain />, auth: authRoles.editor },
 
       { path: "/ativos/maquinas", element: <MaquinasMain />, auth: authRoles.editor },
       { path: "/ativos/planomanutencao", element: <PlanoManutencaoMain />, auth: authRoles.editor },

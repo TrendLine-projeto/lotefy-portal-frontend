@@ -1,5 +1,6 @@
 import React from 'react';
-import { Box, Divider, Grid, Typography } from '@mui/material';
+import { Box, Divider, Grid, Typography, IconButton, Tooltip } from '@mui/material';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
 // CHANGE assinatura
 const InfoHeaderCard = ({
@@ -8,10 +9,7 @@ const InfoHeaderCard = ({
     notStarted = false,
     inProduction = false,
 }) => {
-    const columns = [];
-    for (let i = 0; i < items.length; i += 3) {
-        columns.push(items.slice(i, i + 3));
-    }
+    const safeItems = Array.isArray(items) ? items : [];
 
     const ribbonSx = {
         position: 'absolute',
@@ -25,6 +23,29 @@ const InfoHeaderCard = ({
         lineHeight: '24px',
         transform: 'rotate(90deg)', // cria o efeito de "\"
         boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+    };
+
+    const maxValueLength = 24;
+    const copyToClipboard = async (value) => {
+        const text = String(value ?? '');
+        if (!text) return;
+        if (navigator?.clipboard?.writeText) {
+            try {
+                await navigator.clipboard.writeText(text);
+                return;
+            } catch {
+                // fallback abaixo
+            }
+        }
+        const el = document.createElement('textarea');
+        el.value = text;
+        el.setAttribute('readonly', 'true');
+        el.style.position = 'absolute';
+        el.style.left = '-9999px';
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
     };
 
     return (
@@ -63,33 +84,67 @@ const InfoHeaderCard = ({
                 </Box>
             )}
 
-            <Grid container spacing={0} sx={{ width: '1200px' }}>
-                {columns.map((col, colIndex) => (
-                    <Grid item xs={12} md={4} key={colIndex} sx={{ p: 0 }}>
-                        {col.map((item, index) => (
-                            <Typography
-                                key={index}
-                                variant="subtitle2"
+            <Grid container spacing={1.5}>
+                {safeItems.map((item, index) => {
+                    const valueText =
+                        typeof item.value === 'string' || typeof item.value === 'number'
+                            ? String(item.value)
+                            : null;
+                    const shouldTruncate =
+                        valueText !== null && valueText.length > maxValueLength;
+                    const displayValue =
+                        shouldTruncate
+                            ? `${valueText.slice(0, maxValueLength)}...`
+                            : valueText;
+
+                    return (
+                        <Grid item xs={12} sm={6} md={4} key={index}>
+                            <Box
                                 sx={{
-                                    lineHeight: 1.4,
-                                    ml: 0,
-                                    mt: 2,
-                                    borderBottom: '1px solid #dddddd',
-                                    borderRight: '1px solid #dddddd',
+                                    p: 1.25,
+                                    borderRadius: 1.5,
+                                    border: '1px solid #e2e8f0',
+                                    backgroundColor: '#fafafa',
+                                    minHeight: 64,
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'center',
+                                    gap: 0.5
                                 }}
                             >
-                                <Box component="span" fontWeight="bold" sx={{ ml: 1 }}>
-                                    {item.label}:
-                                </Box>{' '}
-                                <Box component="span" fontWeight={400}>
-                                    {item.value ?? '-'}
+                                <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>
+                                    {item.label}
+                                </Typography>
+                                <Box component="span" fontWeight={500}>
+                                    {valueText === null ? (item.value ?? '-') : (
+                                        <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+                                            <Tooltip title={shouldTruncate ? valueText : ''} disableHoverListener={!shouldTruncate}>
+                                                <Box component="span">
+                                                    {displayValue}
+                                                </Box>
+                                            </Tooltip>
+                                            {shouldTruncate && (
+                                                <Tooltip title="Copiar">
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            copyToClipboard(valueText);
+                                                        }}
+                                                        sx={{ p: 0.25 }}
+                                                    >
+                                                        <ContentCopyIcon sx={{ fontSize: 14 }} />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            )}
+                                        </Box>
+                                    )}
                                 </Box>
-                            </Typography>
-                        ))}
-                    </Grid>
-                ))}
+                            </Box>
+                        </Grid>
+                    );
+                })}
             </Grid>
-            <Divider sx={{ mt: 1.5 }} />
         </Box>
     );
 };

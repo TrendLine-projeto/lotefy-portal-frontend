@@ -217,6 +217,40 @@ export default function IntegracaoImapMain() {
         }
     };
 
+    const handleDuplicar = async (row) => {
+        const id = row?.id;
+        if (!id) {
+            showSnackbar('Selecione uma configuracao valida.', 'warning', 'Configuracao invalida');
+            return;
+        }
+
+        try {
+            let config = row;
+            if (!config?.password_encrypted) {
+                const res = await fetch(`${apiUrl}/integration/imap/${id}`);
+                const result = await res.json();
+                if (!res.ok) {
+                    showSnackbar(result?.mensagem || 'Erro ao carregar configuracao.', 'error', 'Erro ao carregar');
+                    return;
+                }
+                config = result?.configuracao || row;
+            }
+
+            const { id: _id, created_at, updated_at, ...rest } = config || {};
+            setFormValues({
+                ...defaultFormValues,
+                ...rest,
+                password_encrypted: rest?.password_encrypted || ''
+            });
+            setModoEdicao(false);
+            setPainelExpandido(false);
+            showSnackbar('Configuracao duplicada. Salve para criar outro registro.', 'info', 'Configuracao duplicada');
+        } catch (error) {
+            console.error('Erro ao duplicar configuracao IMAP:', error);
+            showSnackbar('Erro ao duplicar configuracao.', 'error', 'Erro ao duplicar');
+        }
+    };
+
     const handleCadastrar = async (values) => {
         const payload = buildPayload(values, true);
 
@@ -504,6 +538,28 @@ export default function IntegracaoImapMain() {
                     onMouseOut={(e) => (e.target.style.textDecoration = 'none')}
                 >
                     Selecionar
+                </button>
+            )
+        },
+        {
+            field: 'duplicar',
+            headerName: 'Duplicar',
+            renderCell: (row) => (
+                <button
+                    onClick={() => handleDuplicar(row)}
+                    style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#1976d2',
+                        cursor: 'pointer',
+                        padding: 0,
+                        fontSize: '0.8rem',
+                        fontWeight: 500
+                    }}
+                    onMouseOver={(e) => (e.target.style.textDecoration = 'underline')}
+                    onMouseOut={(e) => (e.target.style.textDecoration = 'none')}
+                >
+                    Duplicar
                 </button>
             )
         }

@@ -13,7 +13,6 @@ import Person from "@mui/icons-material/Person";
 import Star from "@mui/icons-material/Star";
 import Settings from "@mui/icons-material/Settings";
 import WebAsset from "@mui/icons-material/WebAsset";
-import MailOutline from "@mui/icons-material/MailOutline";
 import StarOutline from "@mui/icons-material/StarOutline";
 import PowerSettingsNew from "@mui/icons-material/PowerSettingsNew";
 import Snackbar from "@mui/material/Snackbar";
@@ -234,10 +233,6 @@ const Layout1Topbar = () => {
             </StyledIconButton>
 
             <IconBox>
-              <StyledIconButton>
-                <MailOutline />
-              </StyledIconButton>
-
               <StyledIconButton onClick={handleToggleFavorito}>
                 <StarOutline sx={{ color: isFavorito ? "#fbc02d" : "inherit" }} />
               </StyledIconButton>
@@ -269,7 +264,7 @@ const Layout1Topbar = () => {
               </StyledItem>
 
               <StyledItem>
-                <Link to="/page-layouts/user-profile">
+                <Link to="/usuario">
                   <Person />
                   <Span sx={{ marginInlineStart: 1 }}>Perfil</Span>
                 </Link>

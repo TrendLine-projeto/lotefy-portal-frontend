@@ -123,6 +123,11 @@ const CardLote = ({ lote, onRefreshLote }) => {
     });
 
     const produtos = Array.isArray(lote?.produtos) ? lote.produtos : [];
+    const isProdutoAtivo = (produto) => {
+        const ativo = produto?.ativo;
+        if (ativo === undefined || ativo === null) return true;
+        return !(ativo === 0 || ativo === false || ativo === '0');
+    };
 
     useEffect(() => {
         setConferenciasCriadas({});
@@ -152,6 +157,44 @@ const CardLote = ({ lote, onRefreshLote }) => {
     };
 
     const handleChange = (name, value) => {
+        const maxQuantidade = Number(produtoSelecionado?.quantidadeProduto);
+        const maxValido = Number.isFinite(maxQuantidade);
+        const camposQuantidade = ['qtdInspecionada', 'qtdAprovada', 'qtdReprovada'];
+
+        if (maxValido && camposQuantidade.includes(name)) {
+            if (value !== '') {
+                const valorNumero = Number(value);
+                if (Number.isFinite(valorNumero) && valorNumero > maxQuantidade) {
+                    setSnackbar({
+                        open: true,
+                        message: 'Quantidade informada maior que a quantidade do produto.',
+                        severity: 'error',
+                        mensagem: 'Quantidade informada maior que a quantidade do produto.'
+                    });
+                    return;
+                }
+
+                if (name === 'qtdAprovada' || name === 'qtdReprovada') {
+                    const qtdAprovada = name === 'qtdAprovada'
+                        ? (Number.isFinite(valorNumero) ? valorNumero : 0)
+                        : Number(form.qtdAprovada || 0);
+                    const qtdReprovada = name === 'qtdReprovada'
+                        ? (Number.isFinite(valorNumero) ? valorNumero : 0)
+                        : Number(form.qtdReprovada || 0);
+
+                    if (qtdAprovada + qtdReprovada > maxQuantidade) {
+                        setSnackbar({
+                            open: true,
+                            message: 'A soma de aprovadas e reprovadas nao pode ultrapassar a quantidade do produto.',
+                            severity: 'error',
+                            mensagem: 'A soma de aprovadas e reprovadas nao pode ultrapassar a quantidade do produto.'
+                        });
+                        return;
+                    }
+                }
+            }
+        }
+
         setForm((prev) => ({ ...prev, [name]: value }));
     };
 
@@ -429,6 +472,29 @@ const CardLote = ({ lote, onRefreshLote }) => {
 
         const qtdReprovadaNumero = Number(form.qtdReprovada);
         const precisaDefeito = Number.isFinite(qtdReprovadaNumero) && qtdReprovadaNumero > 0;
+        const quantidadeMaxima = Number(produtoSelecionado?.quantidadeProduto);
+        if (Number.isFinite(quantidadeMaxima)) {
+            const qtdAprovadaNumero = Number(form.qtdAprovada) || 0;
+            const qtdInspecionadaNumero = Number(form.qtdInspecionada) || 0;
+            if (qtdInspecionadaNumero > quantidadeMaxima) {
+                setSnackbar({
+                    open: true,
+                    message: 'Qtd inspecionada nao pode ser maior que a quantidade do produto.',
+                    severity: 'error',
+                    mensagem: 'Qtd inspecionada nao pode ser maior que a quantidade do produto.'
+                });
+                return;
+            }
+            if (qtdAprovadaNumero + qtdReprovadaNumero > quantidadeMaxima) {
+                setSnackbar({
+                    open: true,
+                    message: 'Qtd aprovada + reprovada nao pode ser maior que a quantidade do produto.',
+                    severity: 'error',
+                    mensagem: 'Qtd aprovada + reprovada nao pode ser maior que a quantidade do produto.'
+                });
+                return;
+            }
+        }
 
         if (precisaDefeito && !defeitoForm.tipoDefeito?.trim()) {
             setSnackbar({
@@ -544,6 +610,18 @@ const CardLote = ({ lote, onRefreshLote }) => {
         { field: 'corSecundaria', headerName: 'Cor secundaria' },
         { field: 'quantidadeProduto', headerName: 'Qtd' },
         {
+            field: 'ativoStatus',
+            headerName: 'Status',
+            renderCell: (row) => (
+                <Chip
+                    size="small"
+                    color={isProdutoAtivo(row) ? 'success' : 'error'}
+                    label={isProdutoAtivo(row) ? 'Ativo' : 'Inativo'}
+                    sx={{ fontWeight: 600 }}
+                />
+            )
+        },
+        {
             field: 'totalConferencias',
             headerName: 'Conferencias',
             renderCell: (row) => {
@@ -571,7 +649,7 @@ const CardLote = ({ lote, onRefreshLote }) => {
                     <Button
                         size="small"
                         variant="contained"
-                        disabled={produtoTemFinalizada(row)}
+                        disabled={produtoTemFinalizada(row) || !isProdutoAtivo(row)}
                         onClick={(event) => {
                             event.stopPropagation();
                             abrirModal(row);
@@ -719,7 +797,7 @@ const CardLote = ({ lote, onRefreshLote }) => {
                                 type="number"
                                 value={form.qtdAprovada}
                                 onChange={(e) => handleChange('qtdAprovada', e.target.value)}
-                                inputProps={{ min: 0, step: 1 }}
+                                inputProps={{ min: 0, max: quantidadeMaxima, step: 1 }}
                                 size="small"
                             />
                             <TextField
@@ -727,7 +805,7 @@ const CardLote = ({ lote, onRefreshLote }) => {
                                 type="number"
                                 value={form.qtdReprovada}
                                 onChange={(e) => handleChange('qtdReprovada', e.target.value)}
-                                inputProps={{ min: 0, step: 1 }}
+                                inputProps={{ min: 0, max: quantidadeMaxima, step: 1 }}
                                 size="small"
                             />
                         </Box>

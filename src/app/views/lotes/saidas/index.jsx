@@ -328,9 +328,9 @@ export default function LoteSaidaMain() {
     }, [hasFiltered, filterNonce, pagination.page, pagination.perPage]);
 
     const fields = [
-        { name: 'numeroIdentificador', label: 'Numero de identificaÃ§Ã£o', type: 'text', placeholder: '' },
+        { name: 'numeroIdentificador', label: 'Numero de identificação', type: 'text', placeholder: '' },
         { name: 'dataEntrada', label: 'Data de entrada', type: 'date', placeholder: '' },
-        { name: 'dataPrevistaSaida', label: 'Data de saÃ­da', type: 'date', placeholder: '' },
+        { name: 'dataPrevistaSaida', label: 'Data de saída', type: 'date', placeholder: '' },
         { name: 'valorEstimado', label: 'Valor', type: 'text', placeholder: 'R$' },
         { name: 'loteIniciado', label: 'Iniciado / Finalizado', type: 'checkbox' }
     ];
@@ -415,6 +415,7 @@ export default function LoteSaidaMain() {
                 autoHideDuration={4000}
                 onClose={() => setSnackbar({ ...snackbar, open: false })}
                 message={snackbar.message}
+                sx={{ mt: 8, zIndex: (theme) => theme.zIndex.modal + 10 }}
             >
                 <Alert severity={snackbar.severity} sx={{ width: '100%' }} variant="filled">
                     {snackbar.mensagem}

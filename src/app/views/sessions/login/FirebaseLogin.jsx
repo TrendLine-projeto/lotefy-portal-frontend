@@ -69,7 +69,7 @@ export default function FirebaseLogin() {
     try {
       const res = await loginComApi(values.email, values.password);
       enqueueSnackbar("Autenticado com sucesso!", { variant: "success" });
-      navigate(state?.from || "/");
+      navigate(state?.from || "/dashboard/default");
     } catch (error) {
       enqueueSnackbar("Erro ao autenticar", { variant: "error" });
       console.error(error);
