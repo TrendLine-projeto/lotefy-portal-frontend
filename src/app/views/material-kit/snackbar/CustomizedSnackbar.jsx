@@ -1,4 +1,4 @@
-import { Alert, Button, Snackbar } from '@mui/material';
+﻿import { Alert, Button, Snackbar } from '@mui/material';
 import { amber, green } from '@mui/material/colors';
 import { styled } from '@mui/material';
 import React from 'react';
@@ -11,7 +11,20 @@ const ContentRoot = styled('div')(({ theme }) => ({
   '& .info': { backgroundColor: theme.palette.primary.main },
   '& .iconVariant': { opacity: 0.9, marginRight: theme.spacing(1) },
   '& .message': { display: 'flex', alignItems: 'center' },
-  '& .margin': { margin: theme.spacing(1) }
+  '& .margin': { margin: theme.spacing(1) },
+  '& .MuiAlert-root': {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  '& .MuiAlert-message': {
+    flex: 1
+  },
+  '& .MuiAlert-icon': {
+    order: 2,
+    marginLeft: theme.spacing(2),
+    marginRight: 0
+  }
 }));
 
 export default function CustomizedSnackbars() {
@@ -57,3 +70,4 @@ export default function CustomizedSnackbars() {
     </ContentRoot>
   );
 }
+

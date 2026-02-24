@@ -52,6 +52,11 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote, onDesati
     const [detalhesLote, setDetalhesLote] = useState(null);
     const [salvando, setSalvando] = useState(false);
     const [openModal, setOpenModal] = useState(false);
+    const [modalImagens, setModalImagens] = useState({
+        open: false,
+        imagens: [],
+        produtoLabel: ''
+    });
     const [confirmDesativar, setConfirmDesativar] = useState({
         open: false,
         produto: null,
@@ -127,6 +132,28 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote, onDesati
         produto?.ativo === '0' ||
         produto?.ativo === false;
 
+    const getImagensProduto = (produto) => {
+        const anexos = Array.isArray(produto?.anexos) ? produto.anexos : [];
+        const imagemPrincipal = produto?.imagem ? [produto.imagem] : [];
+        const imagens = [...anexos, ...imagemPrincipal].filter(Boolean);
+        return Array.from(new Set(imagens));
+    };
+
+    const abrirModalImagens = (produto) => {
+        const imagens = getImagensProduto(produto);
+        const label = produto?.nomeProduto || produto?.numeroIdentificador || `#${produto?.id}`;
+        setModalImagens({ open: true, imagens, produtoLabel: label });
+    };
+
+    const fecharModalImagens = () => {
+        setModalImagens({ open: false, imagens: [], produtoLabel: '' });
+    };
+
+    const abrirImagem = (url) => {
+        if (!url) return;
+        window.open(url, '_blank', 'noopener,noreferrer');
+    };
+
     const abrirConfirmDesativar = (produto, acao) => {
         setConfirmDesativar({ open: true, produto, loading: false, acao });
     };
@@ -152,6 +179,27 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote, onDesati
     const colunasProdutos = buildColumnsWithEllipsis([
         { field: 'numeroIdentificador', headerName: 'Identificador' },
         { field: 'nomeProduto', headerName: 'Produto' },
+        {
+            field: 'imagens',
+            headerName: 'Imagens',
+            renderCell: (row) => {
+                const imagens = getImagensProduto(row);
+                const total = imagens.length;
+                return (
+                    <Button
+                        size="small"
+                        variant="outlined"
+                        disabled={total === 0}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            abrirModalImagens(row);
+                        }}
+                    >
+                        {total > 0 ? `Ver (${total})` : 'Sem imagens'}
+                    </Button>
+                );
+            }
+        },
         { field: 'tipoEstilo', headerName: 'Estilo' },
         { field: 'tamanho', headerName: 'Tamanho' },
         { field: 'corPrimaria', headerName: 'Cor Primária' },
@@ -631,6 +679,75 @@ const CardLote = ({ lote, onIniciarLote, onSalvarProduto, onSalvarLote, onDesati
                     >
                         {confirmDesativar.acao === 'ativar' ? 'Ativar' : 'Desativar'}
                     </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog
+                open={modalImagens.open}
+                onClose={fecharModalImagens}
+                maxWidth="md"
+                fullWidth
+            >
+                <DialogTitle>Imagens do produto {modalImagens.produtoLabel}</DialogTitle>
+                <DialogContent dividers>
+                    {modalImagens.imagens.length > 0 ? (
+                        <Grid container spacing={2}>
+                            {modalImagens.imagens.map((src, index) => (
+                                <Grid item xs={12} sm={6} md={4} key={`${src}-${index}`}>
+                                    <Box
+                                        sx={{
+                                            border: '1px solid #e2e8f0',
+                                            borderRadius: 2,
+                                            p: 1.5,
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: 1,
+                                            height: '100%'
+                                        }}
+                                    >
+                                        <Box
+                                            sx={{
+                                                position: 'relative',
+                                                width: '100%',
+                                                paddingTop: '75%',
+                                                backgroundColor: '#f8fafc',
+                                                borderRadius: 1,
+                                                overflow: 'hidden'
+                                            }}
+                                        >
+                                            <Box
+                                                component="img"
+                                                src={src}
+                                                alt={`Imagem ${index + 1}`}
+                                                loading="lazy"
+                                                sx={{
+                                                    position: 'absolute',
+                                                    inset: 0,
+                                                    width: '100%',
+                                                    height: '100%',
+                                                    objectFit: 'cover'
+                                                }}
+                                            />
+                                        </Box>
+                                        <Button
+                                            size="small"
+                                            variant="outlined"
+                                            onClick={() => abrirImagem(src)}
+                                        >
+                                            Abrir imagem
+                                        </Button>
+                                    </Box>
+                                </Grid>
+                            ))}
+                        </Grid>
+                    ) : (
+                        <Typography variant="body2" color="#6b6b6b">
+                            Nenhuma imagem cadastrada para este produto.
+                        </Typography>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={fecharModalImagens}>Fechar</Button>
                 </DialogActions>
             </Dialog>
 

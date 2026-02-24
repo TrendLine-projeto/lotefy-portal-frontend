@@ -23,7 +23,8 @@ const iconesDisponiveis = {
   BsPeopleFill: BsPeopleFill,
   GoInbox: GoInbox,
   BsPaperclip: BsPaperclip,
-  FaPlug: FaPlug
+  FaPlug: FaPlug,
+  BsPeopleFill: BsPeopleFill
 };
 
 const getDynamicIcon = (iconName) => {
